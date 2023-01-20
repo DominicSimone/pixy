@@ -1,0 +1,59 @@
+[gd_scene load_steps=8 format=3 uid="uid://hr8gimv40gc0"]
+
+[ext_resource type="Script" path="res://games/Jump King/JumpKingNNGame.gd" id="1_3f4gm"]
+[ext_resource type="Script" path="res://games/Jump King/CharacterBody2D.gd" id="1_72nj5"]
+[ext_resource type="Texture2D" uid="uid://b2kaygoje3gju" path="res://pixy dev sprite.png" id="2_reqsq"]
+[ext_resource type="Texture2D" uid="uid://blybq6neqf2pi" path="res://tileset.png" id="3_k1bxs"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6wamh"]
+size = Vector2(12, 16)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_eculr"]
+texture = ExtResource("3_k1bxs")
+0:0/0 = 0
+0:0/0/physics_layer_0/linear_velocity = Vector2(0, 0)
+0:0/0/physics_layer_0/angular_velocity = 0.0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+1:0/0 = 0
+1:0/0/physics_layer_0/linear_velocity = Vector2(0, 0)
+1:0/0/physics_layer_0/angular_velocity = 0.0
+1:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, 5.5, -1.5, -2, 1.5, -2, 8, 5.5, 8, 8, -8, 8)
+2:0/0 = 0
+2:0/0/physics_layer_0/linear_velocity = Vector2(0, 0)
+2:0/0/physics_layer_0/angular_velocity = 0.0
+2:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 0, -8, 0, 8, -8, 8)
+3:0/0 = 0
+3:0/0/physics_layer_0/linear_velocity = Vector2(0, 0)
+3:0/0/physics_layer_0/angular_velocity = 0.0
+3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(0, -8, 8, -8, 8, 8, 0, 8)
+
+[sub_resource type="TileSet" id="TileSet_8kyyc"]
+physics_layer_0/collision_layer = 1
+sources/0 = SubResource("TileSetAtlasSource_eculr")
+
+[node name="Jump King" type="Node2D"]
+script = ExtResource("1_3f4gm")
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+position = Vector2(1, 6)
+script = ExtResource("1_72nj5")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+position = Vector2(0, -7)
+shape = SubResource("RectangleShape2D_6wamh")
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D"]
+texture_filter = 1
+texture = ExtResource("2_reqsq")
+offset = Vector2(0, -8)
+
+[node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
+texture_filter = 1
+current = true
+zoom = Vector2(3, 3)
+
+[node name="TileMap" type="TileMap" parent="."]
+texture_filter = 1
+tile_set = SubResource("TileSet_8kyyc")
+format = 2
+layer_0/tile_data = PackedInt32Array(65534, 0, 0, 65535, 0, 0, 0, 0, 0, 1, 0, 0, 65533, 0, 0, 131069, 0, 0, 2, 0, 0, 65538, 0, 0, 65537, 0, 0, 65536, 0, 0, 131071, 0, 0, 131070, 0, 0, -196605, 0, 0, -196604, 0, 0, -327682, 0, 0, -327681, 0, 0, -393216, 0, 0, -524295, 0, 0, -524294, 0, 0, -524293, 0, 0, -458757, 0, 0, -851974, 0, 0, -851973, 0, 0, -851972, 0, 0, -851971, 0, 0, -655360, 0, 0, -655359, 0, 0, -655358, 0, 0, -196603, 0, 0, -196602, 0, 0, -1048578, 0, 0, -1048577, 0, 0, -1114112, 0, 0, 131061, 0, 0, 65525, 0, 0, -11, 0, 0, -65547, 0, 0, -131083, 0, 0, -196619, 0, 0, -262155, 0, 0, -327691, 0, 0, -393227, 0, 0, -458763, 0, 0, -524299, 0, 0, -589835, 0, 0, -655371, 0, 0, -720907, 0, 0, -786443, 0, 0, -851979, 0, 0, -917515, 0, 0, -983051, 0, 0, -1048587, 0, 0, -1114123, 0, 0, -1179659, 0, 0, -1245195, 0, 0, -1310731, 0, 0, -1376267, 0, 0, 196597, 0, 0, 196598, 0, 0, 196599, 0, 0, 196600, 0, 0, 196601, 0, 0, 196602, 0, 0, 196603, 0, 0, 196604, 0, 0, 196605, 0, 0, 196606, 0, 0, 196607, 0, 0, 131072, 0, 0, 131073, 0, 0, 131074, 0, 0, 131075, 0, 0, 131076, 0, 0, 131077, 0, 0, 131078, 0, 0, 131079, 0, 0, 131080, 0, 0, 131081, 0, 0, 131082, 0, 0, 65546, 0, 0, 10, 0, 0, -65526, 0, 0, -131062, 0, 0, -196598, 0, 0, -262134, 0, 0, -327670, 0, 0, -393206, 0, 0, -458742, 0, 0, -524278, 0, 0, -589814, 0, 0, -655350, 0, 0, -720886, 0, 0, -786422, 0, 0, -851958, 0, 0, -917494, 0, 0, -983030, 0, 0, -1048566, 0, 0, -1114102, 0, 0, -1179638, 0, 0, -1245174, 0, 0, -1310710, 0, 0, -1376246, 0, 0, -1441782, 0, 0, -1310715, 0, 0, -1310714, 0, 0, -1310713, 0, 0, -1507318, 0, 0, -1572854, 0, 0, -1507339, 0, 0, -1441803, 0, 0, -1638400, 0, 0, -1572875, 0, 0, -1638411, 0, 0, -1703947, 0, 0, -1769483, 0, 0, -1835019, 0, 0, -1835018, 0, 0, -1835017, 0, 0, -1835016, 0, 0, -1835015, 0, 0, -1835014, 0, 0, -1835013, 0, 0, -1835012, 0, 0, -1835011, 0, 0, -1835010, 0, 0, -1835009, 0, 0, -1900544, 0, 0, -1900543, 0, 0, -1900542, 0, 0, -1900541, 0, 0, -1900540, 0, 0, -1900539, 0, 0, -1900538, 0, 0, -1900537, 0, 0, -1900536, 0, 0, -1900535, 0, 0, -1900534, 0, 0, -1834998, 0, 0, -1769462, 0, 0, -1703926, 0, 0, -1638390, 0, 0)

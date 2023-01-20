@@ -1,0 +1,33 @@
+- The character is a first-class citizen, and is the core of the experience. Train the character to play games.
+- cute robot ex. pixy that you can swap nn 'chips' in and out (ref megaman battlechip)
+
+What type of game works well?
+- Must be NEAT compliant (i.e. a grid based game is ideal, real time games are interesting because they can be played against) 
+- Not limited to one, can do any number
+- Game types:
+    - 2D/Top Down Combat
+        - Harder to envision how enemies will be accurately conveyed to NN and what to use as fitness
+        - Winning/losing may be more frustrating when different characters perform differently in combat 
+    - 2D Platformer go as far as possible (complete level)
+        - Not as exciting as combat
+        - Movesets can have a lot of variety (ex. a jump king controller, one who can double jump, one who can blink in a direction, one who moves real fast)
+        - Very easy to make content for (TileMap)
+    - Puzzle-ish game (2048)
+        - Possibly the least exciting option, but would be small networks and VERY fast to train since there are no physics involved
+        - No need for extra content, puzzle mechanics are sufficient to replay
+    - Recreate arcade games
+        - Pac-man, snake, bomber man, donkey kong, space invaders, frogger
+
+Player interaction ideas
+- choose character/mini game
+- watch a nn train/play and save/load nn
+- speed up/slow down mini game to allow faster training or easier viewing at critical moments
+- participate in "supervised" training?
+    - Modify/suggest node/connection changes directly to nn?
+    - Highlight important things on screen?
+    - Have nn watch player play and learn? Hot swap between player and nn?
+- In some games, have limited ways the player can interact with the game (outside of moving the player character)
+    - ex. a one-time use emergency double jump
+    - ex. player has to pull levers on screen that modify the level
+    - ex. can smite an enemies while the pc tries to play the game (covering fire almost)
+- Play the mini game manually to compete against nn (split screen? :o)
