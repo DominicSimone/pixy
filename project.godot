@@ -8,43 +8,9 @@
 
 config_version=5
 
-_global_script_classes=[{
-"base": "NNGame",
-"class": &"JumpKingNNGame",
-"language": &"GDScript",
-"path": "res://games/Jump King/JumpKingNNGame.gd"
-}, {
-"base": "Resource",
-"class": &"NEAT",
-"language": &"GDScript",
-"path": "res://scripts/NEAT/NEAT.gd"
-}, {
-"base": "Node",
-"class": &"NNGame",
-"language": &"GDScript",
-"path": "res://scripts/NEAT/NNGame.gd"
-}, {
-"base": "Resource",
-"class": &"NNGrid",
-"language": &"GDScript",
-"path": "res://scripts/NEAT/NNGrid.gd"
-}, {
-"base": "Resource",
-"class": &"NNValue",
-"language": &"GDScript",
-"path": "res://scripts/NEAT/NNValue.gd"
-}]
-_global_script_class_icons={
-"JumpKingNNGame": "",
-"NEAT": "",
-"NNGame": "",
-"NNGrid": "",
-"NNValue": ""
-}
-
 [application]
 
-config/name="Pixy Frame"
+config/name="Pixy"
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.0", "Forward Plus")
 config/icon="res://icon.svg"
@@ -58,6 +24,10 @@ HotKeys="*res://scripts/HotKeys.gd"
 window/size/mode=2
 window/size/transparent=true
 window/per_pixel_transparency/allowed=true
+
+[editor]
+
+export/convert_text_resources_to_binary=true
 
 [input]
 

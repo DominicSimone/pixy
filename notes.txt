@@ -23,6 +23,8 @@ Player interaction ideas
 - watch a nn train/play and save/load nn
 - speed up/slow down mini game to allow faster training or easier viewing at critical moments
 - participate in "supervised" training?
+    - make modifications to nn inputs/outputs
+        - resolution of vision, memory cells, aggregate cell senses (i.e enemy in 5x5 grid in front)
     - Modify/suggest node/connection changes directly to nn?
     - Highlight important things on screen?
     - Have nn watch player play and learn? Hot swap between player and nn?
