@@ -1,4 +1,4 @@
-class_name NNGrid extends Resource
+class_name NNGrid extends NNInput
 
 # Can represent channels with bit flags - up to 64 channels with one int
 var channels: int
@@ -17,6 +17,9 @@ func _init(_size, _channels):
 
 func set_cell(row: int, col: int, channels: Array):
 	data[row][col] = bit_flags(channels)
+
+func get_input_count():
+	return channels * size.x * size.y
 
 static func bit_flags(channels: Array):
 	var bitflags: int = 0

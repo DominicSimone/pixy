@@ -4,7 +4,7 @@ const e: float = 2.71828183
 static func sigmoid(x):
 	return 2 / (1 + pow(e, -4.9 * x)) - 1
 
-# TODO swap out Array for Dictionary?
+# Add a runtime? keeps track of timeout, score, inputs, outputs, sending inputs to game
 
 class NEATConfig extends Resource:
 	var timeout_constant = 20
@@ -19,6 +19,9 @@ class NEATConfig extends Resource:
 	var perturb_chance = 0.90
 	var crossover_chance = 0.75
 
+	var inputs: Array # remember to include the bias input
+	var outputs: Array
+
 	# TODO make this a MutationRates object?
 	var step_size = 0.1
 	var node_mutation_chance = 0.50
@@ -29,18 +32,71 @@ class NEATConfig extends Resource:
 	var enable_mutation_chance = 0.2
 
 class Pool extends Resource:
-	var innovations: int = 0 # Set to number of outputs initially?
+	var innovations: int
 	var species: Array[Species]
 	var generation: int = 0
 	var current_species: int = 0
 	var current_genome: int = 0
+	var current_network: Network
+	var current_frame: int = 0
+	var timeout: int = 0
 	var max_fitness = 0
 	var config: NEATConfig
 	
-	func new_generation():
-		# BOOK 777
-		pass
+	func _init(_config: NEATConfig):
+		config = _config
+		innovations = config.outputs.size()
+		
+		for i in config.population:
+			add_to_species(Genome.basic(config.inputs.size()))
+		
+		initialize_run()
 	
+	func next_genome():
+		current_genome += 1
+		if current_genome > species[current_species].genomes.size():
+			current_genome = 0
+			current_species += 1
+			if current_species > species.size():
+				new_generation()
+				current_species = 1
+	
+	func initialize_run():
+		current_frame = 0
+		timeout = config.timeout_constant
+		var genome = species[current_species].genomes[current_genome]
+		current_network = Network.generate(genome, config)
+	
+	func new_generation():
+		cull_species(false)
+		rank_globally()
+		remove_stale_species()
+		rank_globally()
+		
+		for spec in species:
+			spec.calc_avg_fitness_rank()
+		
+		remove_weak_species()
+		
+		var sum = total_avg_fitness()
+		var children: Array[Genome] = []
+		for spec in species:
+			var breed = floor(spec.avg_fitness / sum * config.population) - 1
+			for i in breed:
+				children.append(spec.breed_child())
+	
+		cull_species(true)
+		
+		while children.size() + species.size() < config.population:
+			children.append(species.pick_random().breed_child())
+		
+		for child in children:
+			add_to_species(child)
+		
+		generation += 1
+		
+		# TODO write file? Return something?
+		
 	func add_to_species(child: Genome):
 		for spec in species:
 			if Genome.same_species(child, spec.genomes[0]):
@@ -119,7 +175,7 @@ class Species extends Resource:
 		var total = genomes.reduce(func(a,b): return a + b) as float
 		avg_fitness = total / genomes.size()
 	
-	func breed_child():
+	func breed_child() -> Genome:
 		var child: Genome
 		
 		if randf() < parent_pool.config.crossover_chance:
@@ -282,10 +338,10 @@ class Genome extends Resource:
 		
 		return randi_range(0, neurons.size() - 1)
 	
-	static func basic() -> Genome:
+	static func basic(input_size: int) -> Genome:
 		var genome = Genome.new()
 		# local innovation = 1
-		# genome._neuron = Inputs
+		genome.max_neuron = input_size
 		genome.mutate()
 		return genome
 	
@@ -369,31 +425,27 @@ class Gene extends Resource:
 	var weight = 0.0
 	var enabled: bool = true
 	var innovation: int = 0
-	
 
 class Neuron extends Resource:
 	var incoming: Array[Gene]
 	var value = 0.0
 
 class Network extends Resource:
-	var neurons: Array[Neuron] # Might need to be a Dictionary to cope with large max index and null values
-	# could also move to using max_nodes and max_nodes_per_network so we can limit size of array
+	var neurons: Dictionary = {}
 	var config: NEATConfig
 	var num_inputs: int
 	var num_outputs: int
 	
-	# TODO make sure number of nodes present in neurons reflects the +1 from the bias node input
-	static func generate(genome: Genome, config: NEATConfig, num_inputs: int, num_outputs: int):
+	static func generate(genome: Genome, config: NEATConfig):
 		var network = Network.new()
 		network.config = config.duplicate(true)
-		network.num_inputs = num_inputs
-		network.num_outputs = num_outputs
-		network.neurons.resize(num_outputs + config.max_nodes) # ~spooky~
+		network.num_inputs = config.inputs.size()
+		network.num_outputs = config.outputs.size()
 		
-		for i in num_inputs:
+		for i in network.num_inputs:
 			network.neurons[i] = Neuron.new()
 		
-		for o in num_outputs:
+		for o in network.num_outputs:
 			network.neurons[o+config.max_nodes] = Neuron.new()
 		
 		genome.genes.sort(func(a, b): return a.out < b.out)
@@ -411,17 +463,15 @@ class Network extends Resource:
 		return network
 		
 	# real inputs, flattened down to an array
-	# TODO change output from mapping value -> bool to just returning slice of values corresponding
-	# to output nodes
 	func evaluate(inputs: Array) -> Array[bool]: 
 		if inputs.size() != num_inputs:
 			printerr("Bad input size: ", inputs.size(), ". Expecting ", num_inputs)
-		inputs.append(1)
 		
 		for i in inputs.size():
 			neurons[i].value = inputs[i]
 		
-		for neuron in neurons:
+		for key in neurons:
+			var neuron = neurons[key]
 			var sum = 0
 			
 			for j in neuron.incoming.size():
@@ -434,10 +484,7 @@ class Network extends Resource:
 		
 		var outputs: Array[bool] = []
 		for o in num_outputs:
-			if neurons[o + config.max_nodes].value > 0:
-				outputs[o] = true
-			else:
-				outputs[o] = false
+			outputs[o] = neurons[o + config.max_nodes].value > 0
 		
 		return outputs
 
