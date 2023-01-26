@@ -1,10 +1,34 @@
-class_name NEAT extends Resource
+class_name NEAT extends Node
 
 const e: float = 2.71828183
 static func sigmoid(x):
 	return 2 / (1 + pow(e, -4.9 * x)) - 1
 
-# Add a runtime? keeps track of timeout, score, inputs, outputs, sending inputs to game
+var pool: Pool
+
+# TODO replace all duplicates with a proper duplicate implementation
+
+func flatten_inputs(inputs: Array[NNInput]) -> Array:
+	return inputs
+
+func register_game(inputs: Array[NNInput], num_outputs: int):
+	var config = NEATConfig.new()
+	config.inputs = flatten_inputs(inputs).size() + 1
+	config.outputs = num_outputs
+	pool = Pool.new(config)
+
+# Called at the start of every game tick
+func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
+	var response = NEATResponse.new()
+	pool.current_frame += 1
+	# TODO more runtime stuff
+	response.outputs = pool.current_network.evaluate(flatten_inputs(inputs))
+	return response
+
+
+class NEATResponse:
+	var outputs: Array[bool] = [false]
+	var reset_flag: bool = false
 
 class NEATConfig extends Resource:
 	var timeout_constant = 20
@@ -19,17 +43,10 @@ class NEATConfig extends Resource:
 	var perturb_chance = 0.90
 	var crossover_chance = 0.75
 
-	var inputs: Array # remember to include the bias input
-	var outputs: Array
-
-	# TODO make this a MutationRates object?
-	var step_size = 0.1
-	var node_mutation_chance = 0.50
-	var link_mutation_chance = 2.0
-	var bias_mutation_chance = 0.40
-	var mutate_connections_chance = 0.25
-	var disable_mutation_chance = 0.4
-	var enable_mutation_chance = 0.2
+	var inputs: int # remember to include the bias input
+	var outputs: int
+	
+	var mutation_rates: MutationRates = MutationRates.new()
 
 class Pool extends Resource:
 	var innovations: int
@@ -45,10 +62,10 @@ class Pool extends Resource:
 	
 	func _init(_config: NEATConfig):
 		config = _config
-		innovations = config.outputs.size()
+		innovations = config.outputs
 		
 		for i in config.population:
-			add_to_species(Genome.basic(config.inputs.size()))
+			add_to_species(Genome.basic(config.inputs, self))
 		
 		initialize_run()
 	
@@ -62,6 +79,7 @@ class Pool extends Resource:
 				current_species = 1
 	
 	func initialize_run():
+		print("Pool initialize run")
 		current_frame = 0
 		timeout = config.timeout_constant
 		var genome = species[current_species].genomes[current_genome]
@@ -181,7 +199,7 @@ class Species extends Resource:
 		if randf() < parent_pool.config.crossover_chance:
 			child = Genome.crossover(genomes.pick_random(), genomes.pick_random())
 		else:
-			child = genomes.pick_random().duplicate(true)
+			child = genomes.pick_random().duplicate()
 		
 		child.mutate()
 		
@@ -189,51 +207,52 @@ class Species extends Resource:
 
 class Genome extends Resource:
 	var parent_pool: Pool
-	var genes = Array[Gene]
+	var genes: Array[Gene]
 	var fitness = 0
 	var adjusted_fitness = 0
-	var network: Network
+	var network: Network = Network.new()
 	var max_neuron = 0
 	var global_rank = 0
 	var mutation_rates: MutationRates 
 	
 	func mutate():
-		
 		for property in mutation_rates.get_property_list():
-			var rate = mutation_rates._get(property.name)
+			if property.usage != PROPERTY_USAGE_SCRIPT_VARIABLE:
+				continue
+			var rate = mutation_rates.get(property.name)
 			if randf() < 0.5:
-				mutation_rates._set(property.name, rate * 0.95)
+				mutation_rates.set(property.name, rate * 0.95)
 			else:
-				mutation_rates._set(property.name, rate * 1.05263)
+				mutation_rates.set(property.name, rate * 1.05263)
 		
-		if randf() < mutation_rates.connections:
+		if randf() < mutation_rates.mutate_connections_chance:
 			point_mutate()
 		
-		var p = mutation_rates.link
+		var p = mutation_rates.link_mutation_chance
 		while p > 0:
 			if randf() < p:
 				link_mutate(false)
 			p -= 1
 		
-		p = mutation_rates.bias
+		p = mutation_rates.bias_mutation_chance
 		while p > 0:
 			if randf() < p:
 				link_mutate(true)
 			p -= 1
 		
-		p = mutation_rates.node
+		p = mutation_rates.node_mutation_chance
 		while p > 0:
 			if randf() < p:
 				node_mutate()
 			p -= 1
 		
-		p = mutation_rates.enable
+		p = mutation_rates.enable_mutation_chance
 		while p > 0:
 			if randf() < p:
 				enable_disable_mutate(true)
 			p -= 1
 		
-		p = mutation_rates.disable
+		p = mutation_rates.disable_mutation_chance
 		while p > 0:
 			if randf() < p:
 				enable_disable_mutate(false)
@@ -262,14 +281,14 @@ class Genome extends Resource:
 		
 		gene.enabled = false
 		
-		var gene1 = gene.duplicate(true)
+		var gene1 = gene.duplicate()
 		gene1.out = max_neuron
 		gene1.weight = 1.0
 		gene1.innovation = parent_pool.new_innovation()
 		gene1.enabled = true
 		genes.append(gene1)
 		
-		var gene2 = gene.duplicate(true)
+		var gene2 = gene.duplicate()
 		gene2.into = max_neuron
 		gene2.innovation = parent_pool.new_innovation()
 		gene2.enabled = true
@@ -305,7 +324,7 @@ class Genome extends Resource:
 		genes.append(new_link)
 	
 	func point_mutate():
-		var step = mutation_rates.step
+		var step = mutation_rates.step_size
 		
 		for gene in genes:
 			if randf() < network.config.perturb_chance:
@@ -338,10 +357,11 @@ class Genome extends Resource:
 		
 		return randi_range(0, neurons.size() - 1)
 	
-	static func basic(input_size: int) -> Genome:
+	static func basic(input_size: int, pool: Pool) -> Genome:
 		var genome = Genome.new()
-		# local innovation = 1
 		genome.max_neuron = input_size
+		genome.parent_pool = pool
+		genome.mutation_rates = pool.config.mutation_rates.duplicate()
 		genome.mutate()
 		return genome
 	
@@ -401,23 +421,23 @@ class Genome extends Resource:
 		for gene in g1.genes:
 			var gene2 = innovations2.get(gene.innovation)
 			if gene2 == null and gene2.enabled and randi_range(1, 2) == 1:
-				child.genes.append(gene2.duplicate(true))
+				child.genes.append(gene2.duplicate())
 			else:
-				child.genes.append(gene.duplicate(true))
+				child.genes.append(gene.duplicate())
 		
 		child.max_neuron = max(g1.max_neuron, g2.max_neuron)
-		child.mutation_rates = g1.mutation_rates.duplicate(true)
+		child.mutation_rates = g1.mutation_rates.duplicate()
 		
 		return child
 
 class MutationRates extends Resource:
-	var connections
-	var link
-	var bias
-	var node
-	var enable
-	var disable
-	var step
+	var step_size = 0.1
+	var node_mutation_chance = 0.50
+	var link_mutation_chance = 2.0
+	var bias_mutation_chance = 0.40
+	var mutate_connections_chance = 0.25
+	var disable_mutation_chance = 0.4
+	var enable_mutation_chance = 0.2
 
 class Gene extends Resource:
 	var into = 0
@@ -437,10 +457,12 @@ class Network extends Resource:
 	var num_outputs: int
 	
 	static func generate(genome: Genome, config: NEATConfig):
+		print("Generating network from ", genome)
 		var network = Network.new()
-		network.config = config.duplicate(true)
-		network.num_inputs = config.inputs.size()
-		network.num_outputs = config.outputs.size()
+		print("\t into network ", network)
+		network.config = config.duplicate()
+		network.num_inputs = config.inputs
+		network.num_outputs = config.outputs
 		
 		for i in network.num_inputs:
 			network.neurons[i] = Neuron.new()
@@ -448,7 +470,7 @@ class Network extends Resource:
 		for o in network.num_outputs:
 			network.neurons[o+config.max_nodes] = Neuron.new()
 		
-		genome.genes.sort(func(a, b): return a.out < b.out)
+		genome.genes.sort_custom(func(a, b): return a.out < b.out)
 		
 		for gene in genome.genes:
 			if gene.enabled:
@@ -484,7 +506,7 @@ class Network extends Resource:
 		
 		var outputs: Array[bool] = []
 		for o in num_outputs:
-			outputs[o] = neurons[o + config.max_nodes].value > 0
+			outputs.append(neurons[o + config.max_nodes].value > 0)
 		
 		return outputs
 

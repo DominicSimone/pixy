@@ -18,7 +18,13 @@ func _init(_size, _channels):
 func set_cell(row: int, col: int, channels: Array):
 	data[row][col] = bit_flags(channels)
 
-func get_input_count():
+func flatten():
+	var flat = []
+	for array in data:
+		flat.append_array(array)
+	return flat
+
+func get_size():
 	return channels * size.x * size.y
 
 static func bit_flags(channels: Array):

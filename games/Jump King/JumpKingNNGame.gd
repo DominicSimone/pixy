@@ -18,7 +18,11 @@ var frame_inputs: Dictionary = {
 	"jump": false
 }
 
+func _ready():
+	Neat.register_game([], 3)
+
 func _physics_process(delta):
+	Neat.frame(0, prepare_nn_input())
 	frame_inputs.jump = Input.is_action_pressed("jump")
 	frame_inputs.left = Input.is_action_pressed("left")
 	frame_inputs.right = Input.is_action_pressed("right")
@@ -26,5 +30,7 @@ func _physics_process(delta):
 func get_frame_output():
 	pass
 
-func submit_inputs():
-	pass
+func prepare_nn_input() -> Array[NNInput]:
+	var data: Array[NNInput] = []
+	data.append(NNValue.new())
+	return data
