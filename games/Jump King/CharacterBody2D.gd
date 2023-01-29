@@ -12,7 +12,15 @@ var current_jump_time: float = 0
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity") * 0.8
 
+var debug_position: Vector2
+
+func _ready():
+	debug_position = global_position
+
 func _physics_process(delta):
+	
+	if Input.is_key_pressed(KEY_R):
+		global_position = debug_position
 	
 	if is_on_ceiling():
 		velocity.x *= 0.5

@@ -5,8 +5,7 @@ static func sigmoid(x):
 	return 2 / (1 + pow(e, -4.9 * x)) - 1
 
 var pool: Pool
-
-# TODO replace all duplicates with a proper duplicate implementation
+var response: NEATResponse = NEATResponse.new()
 
 func flatten_inputs(inputs: Array[NNInput]) -> Array:
 	return inputs
@@ -19,10 +18,25 @@ func register_game(inputs: Array[NNInput], num_outputs: int):
 
 # Called at the start of every game tick
 func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
-	var response = NEATResponse.new()
 	pool.current_frame += 1
-	# TODO more runtime stuff
-	response.outputs = pool.current_network.evaluate(flatten_inputs(inputs))
+	
+	# frequency of running the network and getting outputs
+	if pool.current_frame % 5 == 0:
+		response.outputs = pool.current_network.evaluate(flatten_inputs(inputs))
+	
+	# reset timeout timer if score has gone up
+	if current_score > pool.current_high_score:
+		pool.current_high_score = current_score
+		pool.timeout = pool.config.timeout_constant
+
+	pool.timeout -= 1
+
+	var timeout_bonus = pool.current_frame / 4
+	if pool.timeout + timeout_bonus <= 0:
+		# this network has timed out, close it out
+		# TODO
+		pass
+
 	return response
 
 
@@ -30,7 +44,7 @@ class NEATResponse:
 	var outputs: Array[bool] = [false]
 	var reset_flag: bool = false
 
-class NEATConfig extends Resource:
+class NEATConfig:
 	var timeout_constant = 20
 	var max_nodes = 1000000
 
@@ -47,8 +61,24 @@ class NEATConfig extends Resource:
 	var outputs: int
 	
 	var mutation_rates: MutationRates = MutationRates.new()
+	
+	func copy() -> NEATConfig:
+		var copy = NEATConfig.new()
+		copy.timeout_constant  = copy.timeout_constant
+		copy.max_nodes  = copy.max_nodes
+		copy.population  = copy.population
+		copy.stale_species  = copy.stale_species
+		copy.delta_disjoint = copy.delta_disjoint
+		copy.delta_weights = copy.delta_weights
+		copy.delta_threshold = copy.delta_threshold
+		copy.perturb_chance = copy.perturb_chance
+		copy.crossover_chance = copy.crossover_chance
+		copy.inputs = copy.inputs
+		copy.outputs = copy.outputs
+		copy.mutation_rates = copy.mutation_rates.copy()
+		return copy
 
-class Pool extends Resource:
+class Pool:
 	var innovations: int
 	var species: Array[Species]
 	var generation: int = 0
@@ -56,6 +86,7 @@ class Pool extends Resource:
 	var current_genome: int = 0
 	var current_network: Network
 	var current_frame: int = 0
+	var current_high_score: int = 0
 	var timeout: int = 0
 	var max_fitness = 0
 	var config: NEATConfig
@@ -81,6 +112,7 @@ class Pool extends Resource:
 	func initialize_run():
 		print("Pool initialize run")
 		current_frame = 0
+		current_high_score = 0
 		timeout = config.timeout_constant
 		var genome = species[current_species].genomes[current_genome]
 		current_network = Network.generate(genome, config)
@@ -182,7 +214,7 @@ class Pool extends Resource:
 		innovations += 1
 		return innovations
 
-class Species extends Resource:
+class Species:
 	var parent_pool: Pool
 	var top_fitness = 0
 	var avg_fitness = 0
@@ -199,13 +231,13 @@ class Species extends Resource:
 		if randf() < parent_pool.config.crossover_chance:
 			child = Genome.crossover(genomes.pick_random(), genomes.pick_random())
 		else:
-			child = genomes.pick_random().duplicate()
+			child = genomes.pick_random().copy()
 		
 		child.mutate()
 		
 		return child
 
-class Genome extends Resource:
+class Genome:
 	var parent_pool: Pool
 	var genes: Array[Gene]
 	var fitness = 0
@@ -214,6 +246,18 @@ class Genome extends Resource:
 	var max_neuron = 0
 	var global_rank = 0
 	var mutation_rates: MutationRates 
+	
+	func copy() -> Genome:
+		var copy = Genome.new()
+		copy.parent_pool = parent_pool
+		copy.genes = genes.duplicate(true)
+		#copy.fitness = fitness
+		#copy.adjusted_fitness = adjusted_fitness
+		#copy.network = network
+		copy.max_neuron = max_neuron
+		#copy.global_rank = global_rank
+		copy.mutation_rates = mutation_rates.copy()
+		return copy
 	
 	func mutate():
 		for property in mutation_rates.get_property_list():
@@ -281,14 +325,14 @@ class Genome extends Resource:
 		
 		gene.enabled = false
 		
-		var gene1 = gene.duplicate()
+		var gene1 = gene.copy()
 		gene1.out = max_neuron
 		gene1.weight = 1.0
 		gene1.innovation = parent_pool.new_innovation()
 		gene1.enabled = true
 		genes.append(gene1)
 		
-		var gene2 = gene.duplicate()
+		var gene2 = gene.copy()
 		gene2.into = max_neuron
 		gene2.innovation = parent_pool.new_innovation()
 		gene2.enabled = true
@@ -361,7 +405,7 @@ class Genome extends Resource:
 		var genome = Genome.new()
 		genome.max_neuron = input_size
 		genome.parent_pool = pool
-		genome.mutation_rates = pool.config.mutation_rates.duplicate()
+		genome.mutation_rates = pool.config.mutation_rates.copy()
 		genome.mutate()
 		return genome
 	
@@ -421,16 +465,16 @@ class Genome extends Resource:
 		for gene in g1.genes:
 			var gene2 = innovations2.get(gene.innovation)
 			if gene2 == null and gene2.enabled and randi_range(1, 2) == 1:
-				child.genes.append(gene2.duplicate())
+				child.genes.append(gene2.copy())
 			else:
-				child.genes.append(gene.duplicate())
+				child.genes.append(gene.copy())
 		
 		child.max_neuron = max(g1.max_neuron, g2.max_neuron)
-		child.mutation_rates = g1.mutation_rates.duplicate()
+		child.mutation_rates = g1.mutation_rates.copy()
 		
 		return child
 
-class MutationRates extends Resource:
+class MutationRates:
 	var step_size = 0.1
 	var node_mutation_chance = 0.50
 	var link_mutation_chance = 2.0
@@ -438,29 +482,47 @@ class MutationRates extends Resource:
 	var mutate_connections_chance = 0.25
 	var disable_mutation_chance = 0.4
 	var enable_mutation_chance = 0.2
+	
+	func copy() -> MutationRates:
+		var copy = MutationRates.new()
+		copy.step_size = step_size
+		copy.node_mutation_chance = node_mutation_chance
+		copy.link_mutation_chance = link_mutation_chance
+		copy.bias_mutation_chance = bias_mutation_chance
+		copy.mutate_connections_chance = mutate_connections_chance
+		copy.disable_mutation_chance = disable_mutation_chance
+		copy.enable_mutation_chance = enable_mutation_chance
+		return copy
 
-class Gene extends Resource:
+class Gene:
 	var into = 0
 	var out = 0
 	var weight = 0.0
 	var enabled: bool = true
 	var innovation: int = 0
+	
+	func copy() -> Gene:
+		var copy = Gene.new()
+		copy.into = into
+		copy.out = out
+		copy.weight = weight
+		copy.enabled = enabled
+		copy.innovation = innovation
+		return copy
 
-class Neuron extends Resource:
+class Neuron:
 	var incoming: Array[Gene]
 	var value = 0.0
 
-class Network extends Resource:
+class Network:
 	var neurons: Dictionary = {}
 	var config: NEATConfig
 	var num_inputs: int
 	var num_outputs: int
 	
 	static func generate(genome: Genome, config: NEATConfig):
-		print("Generating network from ", genome)
 		var network = Network.new()
-		print("\t into network ", network)
-		network.config = config.duplicate()
+		network.config = config.copy()
 		network.num_inputs = config.inputs
 		network.num_outputs = config.outputs
 		
