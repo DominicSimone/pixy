@@ -5,24 +5,53 @@ static func sigmoid(x):
 	return 2 / (1 + pow(e, -4.9 * x)) - 1
 
 var pool: Pool
-var response: NEATResponse = NEATResponse.new()
+var response: NEATResponse
 
-func flatten_inputs(inputs: Array[NNInput]) -> Array:
-	return inputs
+var label: RichTextLabel
+var label_enabled: bool = false
+var inactive_last_frame: bool = false
+
+func connect_label(text_label):
+	label = text_label
+	label_enabled = true
+
+func prepare_inputs(inputs: Array[NNInput]):
+	var flat = []
+	for input in inputs:
+		flat.append_array(input.flatten())
+	flat.append(1)
+	return flat
 
 func register_game(inputs: Array[NNInput], num_outputs: int):
 	var config = NEATConfig.new()
-	config.inputs = flatten_inputs(inputs).size() + 1
+	config.inputs = inputs.reduce(func(acc, el): return acc + el.get_size(), 0) + 1
 	config.outputs = num_outputs
+	response = NEATResponse.new(num_outputs)
+	print("Registered game with ", config.inputs, " inputs and ", config.outputs, " outputs.")
 	pool = Pool.new(config)
 
 # Called at the start of every game tick
 func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
+	
 	pool.current_frame += 1
+	if response.reset_flag:
+		response.reset_flag = false
+	
+	if label_enabled:
+		label.text = pool.describe_string()
+		label.text += "\nInput: " + prepare_inputs(inputs).reduce(func(acc, el): return acc + "%d" % el, "")
+		label.text += "\nOutput: " + response.describe_string()
 	
 	# frequency of running the network and getting outputs
 	if pool.current_frame % 5 == 0:
-		response.outputs = pool.current_network.evaluate(flatten_inputs(inputs))
+		response.outputs = pool.current_network.evaluate(prepare_inputs(inputs))
+		# Quick restart if the NN isn't doing anything for two evaluations in a row
+		if not response.outputs.any(func(a): return a):
+			if inactive_last_frame:
+				pool.timeout = 0
+			inactive_last_frame = true
+		else:
+			inactive_last_frame = false
 	
 	# reset timeout timer if score has gone up
 	if current_score > pool.current_high_score:
@@ -31,24 +60,41 @@ func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 
 	pool.timeout -= 1
 
-	var timeout_bonus = pool.current_frame / 4
-	if pool.timeout + timeout_bonus <= 0:
-		# this network has timed out, close it out
-		# TODO
-		pass
-
+	if pool.timeout + pool.config.timeout_bonus_ratio * pool.current_frame <= 0:
+		var fitness = pool.current_high_score - pool.current_frame / 2
+		if fitness == 0:
+			fitness = -1
+		pool.species[pool.current_species].genomes[pool.current_genome].fitness = fitness
+		
+		pool.current_species = 0
+		pool.current_genome = 0
+		while pool.fitness_already_measured():
+			pool.next_genome()
+		pool.initialize_run()
+		response.reset_flag = true
+		inactive_last_frame = false
+		
 	return response
 
 
 class NEATResponse:
-	var outputs: Array[bool] = [false]
+	var outputs: Array[bool] = []
 	var reset_flag: bool = false
+	
+	func _init(num_outputs: int):
+		outputs.resize(num_outputs)
+		for i in outputs.size():
+			outputs[i] = false
+			
+	func describe_string() -> String:
+		return outputs.reduce(func(acc, el): return acc + ("1 " if el else "0 "), "")
 
 class NEATConfig:
-	var timeout_constant = 20
+	var timeout_constant = 150
+	var timeout_bonus_ratio = 0.0
 	var max_nodes = 1000000
 
-	var population = 300
+	var population = 50
 	var stale_species = 15
 	var delta_disjoint = 2.0
 	var delta_weights = 0.4
@@ -91,6 +137,13 @@ class Pool:
 	var max_fitness = 0
 	var config: NEATConfig
 	
+	func describe_string():
+		return "Pool (%d species) %s\nTimeout: %d\nCurrent frame/high_score/max_fitness: %d/%d/%d\nCurrent generation/species/genome: %d.%d.%d" % \
+		[species.size(), self, timeout, current_frame, current_high_score, max_fitness, generation, current_species, current_genome]
+
+	func describe():
+		print(describe_string())
+	
 	func _init(_config: NEATConfig):
 		config = _config
 		innovations = config.outputs
@@ -100,17 +153,19 @@ class Pool:
 		
 		initialize_run()
 	
+	func fitness_already_measured():
+		return species[current_species].genomes[current_genome].fitness != 0
+	
 	func next_genome():
 		current_genome += 1
-		if current_genome > species[current_species].genomes.size():
+		if current_genome >= species[current_species].genomes.size():
 			current_genome = 0
 			current_species += 1
-			if current_species > species.size():
+			if current_species >= species.size():
 				new_generation()
 				current_species = 1
 	
 	func initialize_run():
-		print("Pool initialize run")
 		current_frame = 0
 		current_high_score = 0
 		timeout = config.timeout_constant
@@ -134,7 +189,7 @@ class Pool:
 			var breed = floor(spec.avg_fitness / sum * config.population) - 1
 			for i in breed:
 				children.append(spec.breed_child())
-	
+		
 		cull_species(true)
 		
 		while children.size() + species.size() < config.population:
@@ -221,8 +276,12 @@ class Species:
 	var staleness = 0
 	var genomes: Array[Genome]
 	
+	func describe():
+		print("Species (", genomes.size(), " genomes) ", self)
+		print("\tTop/Avg/Staleness: ", top_fitness, "/", avg_fitness, "/", staleness)
+	
 	func calc_avg_fitness_rank():
-		var total = genomes.reduce(func(a,b): return a + b) as float
+		var total = genomes.reduce(func(acc, el): return acc + el.global_rank, 0)
 		avg_fitness = total / genomes.size()
 	
 	func breed_child() -> Genome:
@@ -246,6 +305,10 @@ class Genome:
 	var max_neuron = 0
 	var global_rank = 0
 	var mutation_rates: MutationRates 
+	
+	func describe():
+		print("Genome (", genes.size(), " genes) ", self)
+		print("\tFit/Adj/Rank: ", fitness, "/", adjusted_fitness, "/", global_rank)
 	
 	func copy() -> Genome:
 		var copy = Genome.new()

@@ -4,25 +4,22 @@ class_name NNGrid extends NNInput
 var channels: int
 var size: Vector2i
 
-var data: Array[PackedInt64Array]
+var data: PackedInt64Array
 
-func _init(_size, _channels):
+func _init(_size: Vector2i, _channels: int):
 	size = _size
 	channels = _channels
 	
 	for row in size.x:
-		data.append(PackedInt64Array())
 		for col in size.y:
-			data[row].append(0)
+			data.append(0)
 
 func set_cell(row: int, col: int, channels: Array):
-	data[row][col] = bit_flags(channels)
+	var index = row + col * size.y
+	data[index] = bit_flags(channels)
 
 func flatten():
-	var flat = []
-	for array in data:
-		flat.append_array(array)
-	return flat
+	return data
 
 func get_size():
 	return channels * size.x * size.y

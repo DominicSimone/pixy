@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://1svlnxapv5i5"]
+[gd_scene load_steps=7 format=3 uid="uid://b3m5fk21vi0dd"]
 
 [ext_resource type="PackedScene" uid="uid://hr8gimv40gc0" path="res://games/Jump King/jump_king.tscn" id="1_kksvv"]
+[ext_resource type="Script" path="res://scripts/NEATDebugText.gd" id="2_e63a7"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_8w1sf"]
 
@@ -99,10 +100,10 @@ light_energy = 0.1
 [node name="ColorRect" type="ColorRect" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
-offset_left = 250.0
-offset_top = 55.0
-offset_right = 794.0
-offset_bottom = 599.0
+offset_left = 277.0
+offset_top = 59.0
+offset_right = 821.0
+offset_bottom = 603.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.552941, 0.396078, 1, 1)
@@ -124,3 +125,25 @@ handle_input_locally = false
 render_target_update_mode = 4
 
 [node name="Jump King" parent="Control/ColorRect/GameView/SubViewport" instance=ExtResource("1_kksvv")]
+
+[node name="ColorRect2" type="ColorRect" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 829.0
+offset_top = 51.0
+offset_right = 1546.0
+offset_bottom = 378.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.054902, 0.054902, 0.054902, 1)
+
+[node name="NEATDebugText" type="RichTextLabel" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 837.0
+offset_top = 62.0
+offset_right = 1497.0
+offset_bottom = 313.0
+text = "NEAT"
+autowrap_mode = 1
+script = ExtResource("2_e63a7")

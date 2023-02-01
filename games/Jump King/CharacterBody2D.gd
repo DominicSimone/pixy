@@ -17,10 +17,11 @@ var debug_position: Vector2
 func _ready():
 	debug_position = global_position
 
+func reset():
+	global_position = debug_position
+	velocity = Vector2.ZERO
+
 func _physics_process(delta):
-	
-	if Input.is_key_pressed(KEY_R):
-		global_position = debug_position
 	
 	if is_on_ceiling():
 		velocity.x *= 0.5
@@ -49,6 +50,9 @@ func _physics_process(delta):
 					velocity.x = direction * WALK_SPEED
 				else:
 					velocity.x = move_toward(velocity.x, 0, WALK_SPEED)
+
+	if Input.is_key_pressed(KEY_R):
+		reset()
 
 	move_and_slide()
 	
