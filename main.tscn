@@ -100,28 +100,30 @@ light_energy = 0.1
 [node name="ColorRect" type="ColorRect" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
-offset_left = 15.0
-offset_top = 14.0
-offset_right = 559.0
-offset_bottom = 558.0
+anchor_left = 0.0130208
+anchor_top = 0.0216049
+anchor_right = 0.335069
+anchor_bottom = 0.594136
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.552941, 0.396078, 1, 1)
+metadata/_edit_use_anchors_ = true
 
 [node name="GameView" type="SubViewportContainer" parent="Control/ColorRect"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = 16.0
-offset_right = -16.0
-offset_bottom = -16.0
+anchors_preset = -1
+anchor_left = 0.0294118
+anchor_top = 0.0294118
+anchor_right = 0.970588
+anchor_bottom = 0.970588
 grow_horizontal = 2
 grow_vertical = 2
+stretch = true
+metadata/_edit_use_anchors_ = true
 
 [node name="SubViewport" type="SubViewport" parent="Control/ColorRect/GameView"]
 handle_input_locally = false
+size = Vector2i(349, 349)
 render_target_update_mode = 4
 
 [node name="Jump King" parent="Control/ColorRect/GameView/SubViewport" instance=ExtResource("1_kksvv")]
@@ -129,21 +131,23 @@ render_target_update_mode = 4
 [node name="ColorRect2" type="ColorRect" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
-offset_left = 571.0
-offset_top = 15.0
-offset_right = 1288.0
-offset_bottom = 342.0
+anchor_left = 0.342882
+anchor_top = 0.0262346
+anchor_right = 0.965278
+anchor_bottom = 0.530864
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.054902, 0.054902, 0.054902, 1)
+metadata/_edit_use_anchors_ = true
 
 [node name="NEATDebugText" type="RichTextLabel" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
-offset_left = 579.0
-offset_top = 26.0
-offset_right = 1277.0
-offset_bottom = 331.0
+anchor_left = 0.349826
+anchor_top = 0.0432099
+anchor_right = 0.955729
+anchor_bottom = 0.513889
 text = "NEAT"
 autowrap_mode = 1
 script = ExtResource("2_e63a7")
+metadata/_edit_use_anchors_ = true

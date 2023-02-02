@@ -10,12 +10,28 @@ var response: NEATResponse
 var label: RichTextLabel
 var label_enabled: bool = false
 var inactive_last_frame: bool = false
+var last_frame_score: int = 0
 
 var start_time: int = 0
 
+var sim_speed: int = 1 :
+	set(speed):
+		sim_speed = speed
+		# Capped by max_fps (and by extension vsync)
+		Engine.physics_ticks_per_second = 60*speed
+		Engine.time_scale = speed
+		
+
+# TODO convert random_neuron to not require a network, only limit to generating a network
+# when it needs to be evaluated to save on memory
+# TODO what happens to culled species/genomes?
+# TODO check why the best species got filtered out despite appearing twice
+# TODO check why species will only have one genome / never increment current_genome
+# TODO make quick restart slower to restart / limit to just beginning position
+
 # TODO save/load a pool
-# TODO speed up simulation (just engine tick rate?)
 # TODO better display of input/output/genome
+# TODO move platforms between generations? so they dont get hardcoded?
 
 func connect_label(text_label):
 	label = text_label
@@ -35,6 +51,8 @@ func register_game(inputs: Array[NNInput], num_outputs: int):
 	response = NEATResponse.new(num_outputs)
 	print("Registered game with ", config.inputs, " inputs and ", config.outputs, " outputs.")
 	pool = Pool.new(config)
+	sim_speed = 20
+
 
 # Called at the start of every game tick
 func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
@@ -59,11 +77,12 @@ func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 	# frequency of running the network and getting outputs
 	if pool.current_frame % 5 == 0:
 		response.outputs = pool.current_network.evaluate(prepare_inputs(inputs))
-		# Quick restart if the NN isn't doing anything for two evaluations in a row
+		# Quick restart if the NN isn't doing anything for two evaluations in a row, and score is unchanging
 		if not response.outputs.any(func(a): return a):
-			if inactive_last_frame:
+			if inactive_last_frame and last_frame_score == current_score:
 				pool.timeout = 0
 			inactive_last_frame = true
+			last_frame_score = current_score
 		else:
 			inactive_last_frame = false
 	
@@ -91,7 +110,7 @@ func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 		
 	return response
 
-class NEATResponse:
+class NEATResponse extends Resource:
 	var outputs: Array[bool] = []
 	var reset_flag: bool = false
 	
@@ -106,7 +125,7 @@ class NEATResponse:
 	func describe_string() -> String:
 		return outputs.reduce(func(acc, el): return acc + ("1 " if el else "0 "), "")
 
-class NEATConfig:
+class NEATConfig extends Resource:
 	var timeout_constant = 150
 	var timeout_bonus_ratio = 0.0
 	var max_nodes = 1000000
@@ -141,7 +160,7 @@ class NEATConfig:
 		copy.mutation_rates = copy.mutation_rates.copy()
 		return copy
 
-class Pool:
+class Pool extends Resource:
 	var innovations: int
 	var species: Array[Species]
 	var generation: int = 0
@@ -155,8 +174,8 @@ class Pool:
 	var config: NEATConfig
 	
 	func describe_string():
-		return "Pool (%d species) %s\nTimeout: %d\nCurrent frame/high_score/max_fitness: %d/%d/%d\nCurrent generation/species/genome: %d.%d.%d" % \
-		[species.size(), self, timeout, current_frame, current_high_score, max_fitness, generation, current_species, current_genome]
+		return "Pool (%d species)\nTimeout: %d\nCurrent frame/high_score/max_fitness: %d/%d/%d\nCurrent generation/species/genome: %d.%d.%d" % \
+		[species.size(), timeout, current_frame, current_high_score, max_fitness, generation, current_species, current_genome]
 
 	func describe():
 		print(describe_string())
@@ -287,7 +306,7 @@ class Pool:
 		innovations += 1
 		return innovations
 
-class Species:
+class Species extends Resource:
 	var parent_pool: Pool
 	var top_fitness = 0
 	var avg_fitness = 0
@@ -314,7 +333,7 @@ class Species:
 		
 		return child
 
-class Genome:
+class Genome extends Resource:
 	var parent_pool: Pool
 	var genes: Array[Gene]
 	var fitness = 0
@@ -327,7 +346,7 @@ class Genome:
 	func genome_string():
 		return genes.reduce(func(acc, g):
 			if g.enabled:
-				return acc + "%d-%d" % [g.out, g.into]
+				return acc + "%d-%d " % [g.out, g.into]
 			else:
 				return acc
 			, "")
@@ -565,7 +584,7 @@ class Genome:
 		
 		return child
 
-class MutationRates:
+class MutationRates extends Resource:
 	var step_size = 0.1
 	var node_mutation_chance = 0.50
 	var link_mutation_chance = 2.0
@@ -585,7 +604,7 @@ class MutationRates:
 		copy.enable_mutation_chance = enable_mutation_chance
 		return copy
 
-class Gene:
+class Gene extends Resource:
 	var into = 0
 	var out = 0
 	var weight = 0.0
@@ -601,11 +620,11 @@ class Gene:
 		copy.innovation = innovation
 		return copy
 
-class Neuron:
+class Neuron extends Resource:
 	var incoming: Array[Gene]
 	var value = 0.0
 
-class Network:
+class Network extends Resource:
 	var neurons: Dictionary = {}
 	var config: NEATConfig
 	var num_inputs: int

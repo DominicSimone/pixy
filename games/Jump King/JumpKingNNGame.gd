@@ -24,9 +24,9 @@ func _physics_process(delta):
 	var response: NEAT.NEATResponse = Neat.frame(get_score(), prepare_nn_input())
 	if response.reset_flag:
 		player.reset()
-	frame_inputs.left = response.outputs[0] or Input.is_action_pressed("left")
-	frame_inputs.jump = response.outputs[1] or Input.is_action_pressed("jump")
-	frame_inputs.right = response.outputs[2] or Input.is_action_pressed("right")
+	frame_inputs.left = response.outputs[0] #or Input.is_action_pressed("left")
+	frame_inputs.jump = response.outputs[1] #or Input.is_action_pressed("jump")
+	frame_inputs.right = response.outputs[2] #or Input.is_action_pressed("right")
 
 func get_score() -> int:
 	return (-1 * player.position.y) + 36

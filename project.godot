@@ -49,6 +49,10 @@ jump={
 ]
 }
 
+[physics]
+
+2d/run_on_separate_thread=true
+
 [rendering]
 
 viewport/transparent_background=true
