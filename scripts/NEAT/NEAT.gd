@@ -11,6 +11,12 @@ var label: RichTextLabel
 var label_enabled: bool = false
 var inactive_last_frame: bool = false
 
+var start_time: int = 0
+
+# TODO save/load a pool
+# TODO speed up simulation (just engine tick rate?)
+# TODO better display of input/output/genome
+
 func connect_label(text_label):
 	label = text_label
 	label_enabled = true
@@ -33,14 +39,22 @@ func register_game(inputs: Array[NNInput], num_outputs: int):
 # Called at the start of every game tick
 func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 	
+	if start_time == 0:
+		start_time = Time.get_ticks_msec()
+	var runtime = Time.get_ticks_msec() - start_time
+	
 	pool.current_frame += 1
 	if response.reset_flag:
 		response.reset_flag = false
 	
 	if label_enabled:
-		label.text = pool.describe_string()
+		label.text = "Runtime: %02d:%02d:%02d\n" % \
+			[(runtime / 1000 / 60 / 60), (runtime / 1000 / 60) % 60, (runtime / 1000) % 60]
+		label.text += pool.describe_string()
+		label.text += "\nCurrent score: %d" % current_score 
 		label.text += "\nInput: " + prepare_inputs(inputs).reduce(func(acc, el): return acc + "%d" % el, "")
 		label.text += "\nOutput: " + response.describe_string()
+		label.text += "\nGenome: " + pool.species[pool.current_species].genomes[pool.current_genome].genome_string()
 	
 	# frequency of running the network and getting outputs
 	if pool.current_frame % 5 == 0:
@@ -73,9 +87,9 @@ func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 		pool.initialize_run()
 		response.reset_flag = true
 		inactive_last_frame = false
+		response.reset_outputs()
 		
 	return response
-
 
 class NEATResponse:
 	var outputs: Array[bool] = []
@@ -83,9 +97,12 @@ class NEATResponse:
 	
 	func _init(num_outputs: int):
 		outputs.resize(num_outputs)
+		reset_outputs()
+	
+	func reset_outputs():
 		for i in outputs.size():
 			outputs[i] = false
-			
+	
 	func describe_string() -> String:
 		return outputs.reduce(func(acc, el): return acc + ("1 " if el else "0 "), "")
 
@@ -94,7 +111,7 @@ class NEATConfig:
 	var timeout_bonus_ratio = 0.0
 	var max_nodes = 1000000
 
-	var population = 50
+	var population = 50 #300
 	var stale_species = 15
 	var delta_disjoint = 2.0
 	var delta_weights = 0.4
@@ -170,7 +187,7 @@ class Pool:
 		current_high_score = 0
 		timeout = config.timeout_constant
 		var genome = species[current_species].genomes[current_genome]
-		current_network = Network.generate(genome, config)
+		current_network = Network.generate(genome)
 	
 	func new_generation():
 		cull_species(false)
@@ -209,6 +226,7 @@ class Pool:
 				return
 		
 		var child_species = Species.new()
+		child_species.parent_pool = self
 		child_species.genomes.append(child)
 		species.append(child_species)
 	
@@ -243,7 +261,7 @@ class Pool:
 	
 	func cull_species(cut_to_one: bool):
 		for spec in species:
-			spec.genomes.sort_custom(func(a,b): a.fitness > b.fitness)
+			spec.genomes.sort_custom(func(a,b): return a.fitness > b.fitness)
 			
 			var remaining = ceil(spec.genomes.size() / 2.0)
 			if cut_to_one:
@@ -252,7 +270,7 @@ class Pool:
 			spec.genomes.resize(remaining)
 	
 	func total_avg_fitness():
-		return species.reduce(func(acc, s): acc + s.avg_fitness, 0.0)
+		return species.reduce(func(acc, s): return acc + s.avg_fitness, 0.0)
 	
 	func rank_globally():
 		var all_genomes = []
@@ -281,7 +299,7 @@ class Species:
 		print("\tTop/Avg/Staleness: ", top_fitness, "/", avg_fitness, "/", staleness)
 	
 	func calc_avg_fitness_rank():
-		var total = genomes.reduce(func(acc, el): return acc + el.global_rank, 0)
+		var total: int = genomes.reduce(func(acc, el): return acc + el.global_rank, 0)
 		avg_fitness = total / genomes.size()
 	
 	func breed_child() -> Genome:
@@ -301,22 +319,26 @@ class Genome:
 	var genes: Array[Gene]
 	var fitness = 0
 	var adjusted_fitness = 0
-	var network: Network = Network.new()
+	var network: Network 
 	var max_neuron = 0
 	var global_rank = 0
 	var mutation_rates: MutationRates 
 	
-	func describe():
-		print("Genome (", genes.size(), " genes) ", self)
-		print("\tFit/Adj/Rank: ", fitness, "/", adjusted_fitness, "/", global_rank)
-	
+	func genome_string():
+		return genes.reduce(func(acc, g):
+			if g.enabled:
+				return acc + "%d-%d" % [g.out, g.into]
+			else:
+				return acc
+			, "")
+		
 	func copy() -> Genome:
 		var copy = Genome.new()
 		copy.parent_pool = parent_pool
 		copy.genes = genes.duplicate(true)
 		#copy.fitness = fitness
 		#copy.adjusted_fitness = adjusted_fitness
-		#copy.network = network
+		copy.network = network
 		copy.max_neuron = max_neuron
 		#copy.global_rank = global_rank
 		copy.mutation_rates = mutation_rates.copy()
@@ -402,7 +424,6 @@ class Genome:
 		genes.append(gene2)
 	
 	# Try to connect two nodes (cannot connect two input nodes together)
-	# TODO this seems like it should be modifying the network as well, but it only modifies the genome
 	func link_mutate(force_bias: bool):
 		var neuron1 = random_neuron(false)
 		var neuron2 = random_neuron(true)
@@ -462,13 +483,18 @@ class Genome:
 			if not non_input or genes[i].out > network.num_inputs:
 				neurons[genes[i].out] = true
 		
-		return randi_range(0, neurons.size() - 1)
+		var rand_index = randi_range(0, neurons.size() - 1)
+		for key in neurons:
+			rand_index -= 1
+			if rand_index < 0:
+				return key
 	
 	static func basic(input_size: int, pool: Pool) -> Genome:
 		var genome = Genome.new()
 		genome.max_neuron = input_size
 		genome.parent_pool = pool
 		genome.mutation_rates = pool.config.mutation_rates.copy()
+		Network.generate(genome)
 		genome.mutate()
 		return genome
 	
@@ -502,17 +528,18 @@ class Genome:
 		
 		for gene in second.genes:
 			second_genes[gene.innovation] = true
-			if first_genes[gene.innovation] == false:
+			if first_genes.has(gene.innovation):
 				disjoint_genes += 1
 			
 		for gene in first.genes:
-			if second_genes[gene.innovation] == false:
+			if second_genes.has(gene.innovation):
 				disjoint_genes += 1
 		
 		return disjoint_genes / max(first_genes.size(), second_genes.size())
 	
 	static func crossover(first: Genome, second: Genome) -> Genome:
 		var child = Genome.new()
+		child.parent_pool = first.parent_pool
 		
 		# g1 should be the genome with higher fitness score
 		var g1: Genome = second
@@ -527,13 +554,14 @@ class Genome:
 		
 		for gene in g1.genes:
 			var gene2 = innovations2.get(gene.innovation)
-			if gene2 == null and gene2.enabled and randi_range(1, 2) == 1:
+			if gene2 != null and gene2.enabled and randi_range(1, 2) == 1:
 				child.genes.append(gene2.copy())
 			else:
 				child.genes.append(gene.copy())
 		
 		child.max_neuron = max(g1.max_neuron, g2.max_neuron)
 		child.mutation_rates = g1.mutation_rates.copy()
+		Network.generate(child)
 		
 		return child
 
@@ -583,8 +611,10 @@ class Network:
 	var num_inputs: int
 	var num_outputs: int
 	
-	static func generate(genome: Genome, config: NEATConfig):
+	static func generate(genome: Genome):
 		var network = Network.new()
+		var config = genome.parent_pool.config
+		genome.network = network
 		network.config = config.copy()
 		network.num_inputs = config.inputs
 		network.num_outputs = config.outputs
@@ -599,12 +629,12 @@ class Network:
 		
 		for gene in genome.genes:
 			if gene.enabled:
-				if network.neurons[gene.out] == null:
+				if not network.neurons.has(gene.out):
 					network.neurons[gene.out] = Neuron.new()
 				
 				network.neurons[gene.out].incoming.append(gene)
 				
-				if network.neurons[gene.into] == null:
+				if not network.neurons.has(gene.into):
 					network.neurons[gene.into] = Neuron.new()
 		
 		return network

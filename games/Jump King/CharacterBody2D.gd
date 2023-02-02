@@ -20,6 +20,7 @@ func _ready():
 func reset():
 	global_position = debug_position
 	velocity = Vector2.ZERO
+	current_jump_time = 0
 
 func _physics_process(delta):
 	
