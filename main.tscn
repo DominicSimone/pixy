@@ -1,7 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://b3m5fk21vi0dd"]
+[gd_scene load_steps=10 format=3 uid="uid://bq0uyd43qvg1k"]
 
-[ext_resource type="PackedScene" uid="uid://hr8gimv40gc0" path="res://games/Jump King/jump_king.tscn" id="1_kksvv"]
+[ext_resource type="PackedScene" uid="uid://bceky0wsqq1bk" path="res://games/Jump King/jump_king.tscn" id="1_kksvv"]
 [ext_resource type="Script" path="res://scripts/NEATDebugText.gd" id="2_e63a7"]
+[ext_resource type="Script" path="res://scripts/SimSpeedSlider.gd" id="3_qttcm"]
+[ext_resource type="Script" path="res://scripts/SaveButton.gd" id="4_nowmc"]
+[ext_resource type="Script" path="res://Load.gd" id="5_007l2"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_8w1sf"]
 
@@ -134,20 +137,63 @@ anchors_preset = -1
 anchor_left = 0.342882
 anchor_top = 0.0262346
 anchor_right = 0.965278
-anchor_bottom = 0.530864
+anchor_bottom = 0.651235
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.054902, 0.054902, 0.054902, 1)
 metadata/_edit_use_anchors_ = true
 
-[node name="NEATDebugText" type="RichTextLabel" parent="Control"]
+[node name="NEATDebugText" type="Label" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.349826
 anchor_top = 0.0432099
 anchor_right = 0.955729
-anchor_bottom = 0.513889
+anchor_bottom = 0.640432
 text = "NEAT"
 autowrap_mode = 1
 script = ExtResource("2_e63a7")
 metadata/_edit_use_anchors_ = true
+
+[node name="SimSpeedSlider" type="HSlider" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0130208
+anchor_top = 0.601852
+anchor_right = 0.333333
+anchor_bottom = 0.669753
+offset_bottom = -3.05176e-05
+pivot_offset = Vector2(103, 281)
+min_value = 1.0
+max_value = 10.0
+value = 1.0
+rounded = true
+scrollable = false
+script = ExtResource("3_qttcm")
+metadata/_edit_use_anchors_ = true
+
+[node name="Save" type="Button" parent="Control"]
+layout_mode = 0
+anchor_left = 0.0182292
+anchor_top = 0.689815
+anchor_right = 0.0859375
+anchor_bottom = 0.737654
+text = "save"
+script = ExtResource("4_nowmc")
+metadata/_edit_use_anchors_ = true
+
+[node name="Load" type="Button" parent="Control"]
+layout_mode = 0
+anchor_left = 0.0998264
+anchor_top = 0.689815
+anchor_right = 0.167535
+anchor_bottom = 0.737654
+text = "load"
+script = ExtResource("5_007l2")
+metadata/_edit_use_anchors_ = true
+
+[connection signal="gui_input" from="Control/ColorRect2" to="Control/NEATDebugText" method="_on_color_rect_2_gui_input"]
+[connection signal="gui_input" from="Control/NEATDebugText" to="Control/NEATDebugText" method="_on_gui_input"]
+[connection signal="value_changed" from="Control/SimSpeedSlider" to="Control/SimSpeedSlider" method="_on_value_changed"]
+[connection signal="pressed" from="Control/Save" to="Control/Save" method="_on_pressed"]
+[connection signal="pressed" from="Control/Load" to="Control/Load" method="_on_pressed"]

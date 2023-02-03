@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 @onready var NN = get_parent()
+@onready var sprite = $Sprite2D
 
 const WALK_SPEED = 100.0
 const JUMP_SPEED = 120.0
@@ -37,9 +38,11 @@ func _physics_process(delta):
 	else:
 	
 		if NN.frame_inputs["jump"]:
+			sprite.frame = 1
 			current_jump_time += delta
 			velocity.x = move_toward(velocity.x, 0, JUMP_SPEED)
 		else:
+			sprite.frame = 0
 			if current_jump_time > 0:
 				var jump = max(lerp(jump_range.x, jump_range.y, current_jump_time / max_jump_time), jump_range.y)
 				current_jump_time = 0

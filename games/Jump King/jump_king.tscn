@@ -1,21 +1,12 @@
-[gd_scene load_steps=10 format=3 uid="uid://hr8gimv40gc0"]
+[gd_scene load_steps=8 format=3 uid="uid://bceky0wsqq1bk"]
 
-[ext_resource type="Script" path="res://games/Jump King/JumpKingNNGame.gd" id="1_3f4gm"]
 [ext_resource type="Script" path="res://games/Jump King/CharacterBody2D.gd" id="1_72nj5"]
-[ext_resource type="Texture2D" uid="uid://b2kaygoje3gju" path="res://pixy dev sprite.png" id="2_reqsq"]
+[ext_resource type="Script" path="res://games/Jump King/JumpKing.gd" id="1_gkqu3"]
 [ext_resource type="Texture2D" uid="uid://bjt4inan0vvrr" path="res://tileset.png" id="3_k1bxs"]
-[ext_resource type="Shader" path="res://sprite outline.gdshader" id="3_yrkjb"]
+[ext_resource type="Texture2D" uid="uid://ci7a8x48updeq" path="res://pixy atlas.png" id="4_ofxq3"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6wamh"]
 size = Vector2(12, 16)
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_0n45t"]
-shader = ExtResource("3_yrkjb")
-shader_parameter/color = Color(0, 0, 0, 1)
-shader_parameter/width = 1.0
-shader_parameter/pattern = 1
-shader_parameter/inside = false
-shader_parameter/add_margins = true
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ec0c0"]
 texture = ExtResource("3_k1bxs")
@@ -485,7 +476,7 @@ terrain_set_0/terrain_0/color = Color(0.729412, 0.0313726, 0.129412, 1)
 sources/1 = SubResource("TileSetAtlasSource_ec0c0")
 
 [node name="Jump King" type="Node2D"]
-script = ExtResource("1_3f4gm")
+script = ExtResource("1_gkqu3")
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="."]
 position = Vector2(0, -1)
@@ -499,9 +490,10 @@ shape = SubResource("RectangleShape2D_6wamh")
 
 [node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D"]
 texture_filter = 1
-material = SubResource("ShaderMaterial_0n45t")
-texture = ExtResource("2_reqsq")
-offset = Vector2(0, -8)
+texture = ExtResource("4_ofxq3")
+offset = Vector2(0, -7)
+hframes = 2
+region_rect = Rect2(0, 0, 16, 16)
 
 [node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
 texture_filter = 1
