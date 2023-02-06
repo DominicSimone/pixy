@@ -14,19 +14,19 @@ func _init(_size: Vector2i, _channels: int):
 		for col in size.y:
 			data.append(0)
 
-func set_cell(row: int, col: int, channels: Array):
+func set_cell(row: int, col: int, _channels: Array):
 	var index = row + col * size.x
-	data[index] = bit_flags(channels)
+	data[index] = NNGrid.bit_flags(_channels)
 
 func describe(newline: bool):
-	var str: String = ""
+	var string: String = ""
 	for col in range(size.y - 1, -1, -1):
 		for row in size.x:
-			str += "%d" % data[row + col * size.x]
-		str += "\n"
+			string += "%d" % data[row + col * size.x]
+		string += "\n"
 	if newline:
-		str += "\n"
-	return str
+		string += "\n"
+	return string
 
 func flatten():
 	return data
@@ -34,8 +34,8 @@ func flatten():
 func get_size():
 	return channels * size.x * size.y
 
-static func bit_flags(channels: Array):
+static func bit_flags(_channels: Array):
 	var bitflags: int = 0
-	for channel in channels:
+	for channel in _channels:
 		bitflags |= 1 << channel
 	return bitflags

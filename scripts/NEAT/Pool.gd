@@ -1,29 +1,41 @@
 class_name Pool extends Resource
-var innovations: int
-var species: Array[Species]
-var generation: int = 0
-var current_species: int = 0
-var current_genome: int = 0
-var current_network: Network
-var current_frame: int = 0
-var current_high_score: int = 0
-var timeout: int = 0
-var max_fitness = 0
-var config: NEATConfig
+
+@export var config: NEATConfig = null
+@export var innovations: int = 0
+@export var species: Array[Species] = []
+@export var generation: int = 0
+@export var current_species: int = 0
+@export var current_genome: int = 0
+@export var current_network: Network = null
+@export var current_frame: int = 0
+@export var current_high_score: int = 0
+@export var timeout: int = 0
+@export var max_fitness: int = 0
+
+# Not used, but required for ResourceLoader
+func _init(_config = null, i = 0, sp: Array[Species] = [], g = 0, cs = 0, cg = 0, cn = null, cf = 0, chs = 0, t = 0, mf = 0):
+	innovations = i
+	species = sp
+	generation = g
+	current_species = cs
+	current_genome = cg
+	current_network = cn
+	current_frame = cf
+	current_high_score = chs
+	timeout = t
+	max_fitness = mf
+	config = _config
+	
 
 func describe_string():
 	return "Pool (%d species)\nTimeout: %d\nCurrent generation/species/genome: %d.%d.%d" % \
 	[species.size(), timeout, generation, current_species, current_genome]
 
-func describe():
-	print(describe_string())
-
-func _init(_config: NEATConfig):
-	config = _config
+func startup():
 	innovations = config.outputs
 	
 	for i in config.population:
-		add_to_species(Genome.basic(config.inputs, self))
+		add_to_species(Genome.basic(config))
 	
 	initialize_run()
 
@@ -44,7 +56,7 @@ func initialize_run():
 	current_high_score = 0
 	timeout = config.timeout_constant
 	var genome = species[current_species].genomes[current_genome]
-	current_network = Network.generate(genome)
+	current_network = Network.generate(genome, config)
 
 func new_generation():
 	cull_species(false)
@@ -62,12 +74,12 @@ func new_generation():
 	for spec in species:
 		var breed = floor(spec.avg_fitness / sum * config.population) - 1
 		for i in breed:
-			children.append(spec.breed_child())
+			children.append(spec.breed_child(config))
 	
 	cull_species(true)
 	
 	while children.size() + species.size() < config.population:
-		children.append(species.pick_random().breed_child())
+		children.append(species.pick_random().breed_child(config))
 	
 	for child in children:
 		add_to_species(child)
@@ -78,12 +90,11 @@ func new_generation():
 	
 func add_to_species(child: Genome):
 	for spec in species:
-		if Genome.same_species(child, spec.genomes[0]):
+		if Genome.same_species(child, spec.genomes[0], config):
 			spec.genomes.append(child)
 			return
 	
 	var child_species = Species.new()
-	child_species.parent_pool = self
 	child_species.genomes.append(child)
 	species.append(child_species)
 

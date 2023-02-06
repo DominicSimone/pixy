@@ -1,4 +1,4 @@
 extends HSlider
 
-func _on_value_changed(value):
-	Neat.sim_speed = value
+func _on_value_changed(v):
+	Neat.sim_speed = v

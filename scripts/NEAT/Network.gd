@@ -1,21 +1,28 @@
 class_name Network extends Resource
 
-var neurons: Dictionary = {}
-var parent_pool: Pool
-var num_inputs: int
-var num_outputs: int
+@export var neurons: Dictionary = {}
+@export var num_inputs: int = 0
+@export var num_outputs: int = 0
+@export var max_nodes: int = 0
 
-static func generate(genome: Genome):
+# Not used, but required for ResourceLoader
+func _init(n = {}, i = 0, o = 0, mn = 0):
+	neurons = n
+	num_inputs = i
+	num_outputs = o
+	max_nodes = mn
+
+static func generate(genome: Genome, config: NEATConfig):
 	var network = Network.new()
-	network.parent_pool = genome.parent_pool
-	network.num_inputs = network.parent_pool.config.inputs
-	network.num_outputs = network.parent_pool.config.outputs
+	network.max_nodes = config.max_nodes
+	network.num_inputs = config.inputs
+	network.num_outputs = config.outputs
 	
 	for i in network.num_inputs:
 		network.neurons[i] = Neuron.new()
 	
 	for o in network.num_outputs:
-		network.neurons[o+network.parent_pool.config.max_nodes] = Neuron.new()
+		network.neurons[o+config.max_nodes] = Neuron.new()
 	
 	genome.genes.sort_custom(func(a, b): return a.out < b.out)
 	
@@ -53,7 +60,7 @@ func evaluate(inputs: Array) -> Array[bool]:
 	
 	var outputs: Array[bool] = []
 	for o in num_outputs:
-		outputs.append(neurons[o + parent_pool.config.max_nodes].value > 0)
+		outputs.append(neurons[o + max_nodes].value > 0)
 	
 	return outputs
 

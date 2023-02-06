@@ -1,11 +1,20 @@
 class_name Genome extends Resource
-var parent_pool: Pool
-var genes: Array[Gene]
-var fitness = 0
-var adjusted_fitness = 0
-var max_neuron = 0
-var global_rank = 0
-var mutation_rates: MutationRates 
+
+@export var genes: Array[Gene] = []
+@export var fitness = 0
+@export var adjusted_fitness = 0
+@export var max_neuron = 0
+@export var global_rank = 0
+@export var mutation_rates: MutationRates = null
+
+# Not used, but required for ResourceLoader
+func _init(g: Array[Gene] = [], f = 0, adjf = 0, mn = 0, gr = 0, mr = null):
+	genes = g
+	fitness = f
+	adjusted_fitness = adjf
+	max_neuron = mn
+	global_rank = gr
+	mutation_rates = mr
 
 func genome_string():
 	return genes.reduce(func(acc, g):
@@ -17,7 +26,6 @@ func genome_string():
 	
 func copy() -> Genome:
 	var copy = Genome.new()
-	copy.parent_pool = parent_pool
 	copy.genes = genes.duplicate(true)
 	#copy.fitness = fitness
 	#copy.adjusted_fitness = adjusted_fitness
@@ -26,7 +34,7 @@ func copy() -> Genome:
 	copy.mutation_rates = mutation_rates.copy()
 	return copy
 
-func mutate():
+func mutate(config: NEATConfig):
 	for property in mutation_rates.get_property_list():
 		if property.usage != PROPERTY_USAGE_SCRIPT_VARIABLE:
 			continue
@@ -37,18 +45,18 @@ func mutate():
 			mutation_rates.set(property.name, rate * 1.05263)
 	
 	if randf() < mutation_rates.mutate_connections_chance:
-		point_mutate()
+		point_mutate(config)
 	
 	var p = mutation_rates.link_mutation_chance
 	while p > 0:
 		if randf() < p:
-			link_mutate(false)
+			link_mutate(false, config)
 		p -= 1
 	
 	p = mutation_rates.bias_mutation_chance
 	while p > 0:
 		if randf() < p:
-			link_mutate(true)
+			link_mutate(true, config)
 		p -= 1
 	
 	p = mutation_rates.node_mutation_chance
@@ -95,22 +103,21 @@ func node_mutate():
 	var gene1 = gene.copy()
 	gene1.out = max_neuron
 	gene1.weight = 1.0
-	gene1.innovation = parent_pool.new_innovation()
+	gene1.innovation = Neat.innovation()
 	gene1.enabled = true
 	genes.append(gene1)
 	
 	var gene2 = gene.copy()
 	gene2.into = max_neuron
-	gene2.innovation = parent_pool.new_innovation()
+	gene2.innovation = Neat.innovation()
 	gene2.enabled = true
 	genes.append(gene2)
 
 # Try to connect two nodes (cannot connect two input nodes together)
-func link_mutate(force_bias: bool):
-	var neuron1 = random_neuron(false)
-	var neuron2 = random_neuron(true)
-	var num_inputs = parent_pool.config.inputs
-	var num_outputs = parent_pool.config.outputs
+func link_mutate(force_bias: bool, config: NEATConfig):
+	var neuron1 = random_neuron(false, config)
+	var neuron2 = random_neuron(true, config)
+	var num_inputs = config.inputs
 	
 	var new_link = Gene.new()
 	if neuron1 <= num_inputs and neuron2 <= num_inputs:
@@ -130,16 +137,16 @@ func link_mutate(force_bias: bool):
 	if contains_link(new_link.into, new_link.out):
 		return
 	
-	new_link.innovation = parent_pool.new_innovation()
+	new_link.innovation = Neat.innovation()
 	new_link.weight = randf() * 4 - 2
 	
 	genes.append(new_link)
 
-func point_mutate():
+func point_mutate(config: NEATConfig):
 	var step = mutation_rates.step_size
 	
 	for gene in genes:
-		if randf() < parent_pool.config.perturb_chance:
+		if randf() < config.perturb_chance:
 			gene.weight += randf() * step * 2 - step
 		else:
 			gene.weight = randf() * 4 - 2
@@ -152,17 +159,17 @@ func contains_link(into, out) -> bool:
 
 # Pick a random neuron, with the option of ignoring input neurons
 # This seems like Lua made this a nightmare, can be simplified greatly
-func random_neuron(non_input: bool):
+func random_neuron(non_input: bool, config: NEATConfig):
 	var neurons = {}
-	var num_inputs = parent_pool.config.inputs
-	var num_outputs = parent_pool.config.outputs
+	var num_inputs = config.inputs
+	var num_outputs = config.outputs
 	
 	# This block seems like its filtering available neurons to choose?
 	if not non_input:
 		for i in num_inputs:
 			neurons[i] = true
 	for o in num_outputs:
-		neurons[parent_pool.config.max_nodes + o] = true
+		neurons[config.max_nodes + o] = true
 	for i in genes.size():
 		if not non_input or genes[i].into > num_inputs:
 			neurons[genes[i].into] = true
@@ -175,18 +182,17 @@ func random_neuron(non_input: bool):
 		if rand_index < 0:
 			return key
 
-static func basic(input_size: int, pool: Pool) -> Genome:
+static func basic(config: NEATConfig) -> Genome:
 	var genome = Genome.new()
-	genome.max_neuron = input_size
-	genome.parent_pool = pool
-	genome.mutation_rates = pool.config.mutation_rates.copy()
-	genome.mutate()
+	genome.max_neuron = config.inputs
+	genome.mutation_rates = config.mutation_rates.copy()
+	genome.mutate(config)
 	return genome
 
-static func same_species(first: Genome, second: Genome) -> bool:
-	var dd = first.parent_pool.config.delta_disjoint * disjoint(first, second)
-	var dw = first.parent_pool.config.delta_weights * weights(first, second)
-	return (dd + dw) < first.parent_pool.config.delta_threshold
+static func same_species(first: Genome, second: Genome, config: NEATConfig) -> bool:
+	var dd = config.delta_disjoint * disjoint(first, second)
+	var dw = config.delta_weights * weights(first, second)
+	return (dd + dw) < config.delta_threshold
 
 static func weights(first: Genome, second: Genome):
 	var second_genes = {}
@@ -224,7 +230,6 @@ static func disjoint(first: Genome, second: Genome) -> float:
 
 static func crossover(first: Genome, second: Genome) -> Genome:
 	var child = Genome.new()
-	child.parent_pool = first.parent_pool
 	
 	# g1 should be the genome with higher fitness score
 	var g1: Genome = second

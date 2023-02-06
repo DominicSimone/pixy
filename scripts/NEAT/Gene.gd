@@ -1,9 +1,18 @@
 class_name Gene extends Resource
-var into = 0
-var out = 0
-var weight = 0.0
-var enabled: bool = true
-var innovation: int = 0
+
+@export var into = 0
+@export var out = 0
+@export var weight = 0.0
+@export var enabled: bool = true
+@export var innovation: int = 0
+
+# Not used, but required for ResourceLoader
+func _init(i = 0, o = 0, w = 0.0, e = true, inn = 0):
+	into = i
+	out = o
+	weight = w
+	enabled = e
+	innovation = inn
 
 func copy() -> Gene:
 	var copy = Gene.new()

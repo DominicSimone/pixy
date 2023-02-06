@@ -9,13 +9,18 @@ var response: NEATResponse
 
 var label: Label
 var label_enabled: bool = false
-var inactive_last_frame: bool = false
 var last_frame_score: int = 0
+var idle_counter: int = 0
 
 var start_time: int = 0
 var run_time: int = 0
 var frame_time: int = 0
 var prev_frame_time: int = 0
+
+var paused: bool = false :
+	set(p):
+		paused = p
+		Engine.time_scale = 0 if p else sim_speed
 
 var sim_speed: int = 1 :
 	set(speed):
@@ -26,12 +31,9 @@ var sim_speed: int = 1 :
 		Engine.max_fps = 60 * speed
 		
 
-# TODO check into and out to see if its consistent
-# TODO what happens to culled species/genomes?
-# TODO check why the best species got filtered out despite appearing twice
-# TODO check why species will only have one genome / never increment current_genome
-
-# TODO save/load a pool
+# TODO load a saved pool / save/load the best genome in a pool
+# Loading only works once..., then the resource will not be updated upon loading again
+# Saving always seems to work correctly
 # TODO better display of neural net
 
 func connect_label(text_label):
@@ -43,12 +45,16 @@ func update_label():
 
 func save_pool():
 	print("Saving pool...")
-	var error = ResourceSaver.save(pool, "res://pool.res")
+	paused = true
+	var error = ResourceSaver.save(pool, "res://pool.tres")
+	paused = false
 	print(error)
 	
 func load_pool():
 	print("Loading pool...")
-	pool = ResourceLoader.load("res://pool.res", "Pool")
+	paused = true
+	pool = ResourceLoader.load("res://pool.tres", "", ResourceLoader.CACHE_MODE_REPLACE)
+	paused = false
 	print(pool)
 
 func prepare_inputs(inputs: Array[NNInput]):
@@ -65,11 +71,15 @@ func register_game(inputs: Array[NNInput], num_outputs: int):
 	response = NEATResponse.new(num_outputs)
 	print("Registered game with ", config.inputs, " inputs and ", config.outputs, " outputs.")
 	pool = Pool.new(config)
+	pool.startup()
 
+func innovation() -> int:
+	return pool.new_innovation()
 
 # Called at the start of every game tick
 func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
-	
+	if paused:
+		return response
 	# Time keeping
 	if start_time == 0:
 		start_time = Time.get_ticks_msec()
@@ -101,12 +111,13 @@ func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 		response.outputs = pool.current_network.evaluate(prepare_inputs(inputs))
 		# Quick restart if the NN isn't doing anything for two evaluations in a row, and score is unchanging
 		if not response.outputs.any(func(a): return a):
-			if inactive_last_frame and last_frame_score == current_score:
+			if current_score == last_frame_score:
+				idle_counter += 1
+			if idle_counter > 5:
 				pool.timeout = 0
-			inactive_last_frame = true
 			last_frame_score = current_score
 		else:
-			inactive_last_frame = false
+			idle_counter = 0
 	
 	# reset timeout timer if score has gone up
 	if current_score > pool.current_high_score:
@@ -116,7 +127,7 @@ func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 	pool.timeout -= 1
 
 	if pool.timeout + pool.config.timeout_bonus_ratio * pool.current_frame <= 0:
-		var fitness = pool.current_high_score - pool.current_frame / 2
+		var fitness = pool.current_high_score #- pool.current_frame / 2
 		if fitness == 0:
 			fitness = -1
 		pool.species[pool.current_species].genomes[pool.current_genome].fitness = fitness
@@ -130,7 +141,7 @@ func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 			pool.next_genome()
 		pool.initialize_run()
 		response.reset_flag = true
-		inactive_last_frame = false
+		idle_counter = 0
 		response.reset_outputs()
 		
 	return response

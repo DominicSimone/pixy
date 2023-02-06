@@ -1,4 +1,9 @@
 class_name Neuron extends Resource
 
-var incoming: Array[Gene]
-var value = 0.0
+@export var incoming: Array[Gene]
+@export var value = 0.0
+
+# Not used, but required for ResourceLoader
+func _init(i: Array[Gene] = [], v = 0.0):
+	incoming = i
+	value = v

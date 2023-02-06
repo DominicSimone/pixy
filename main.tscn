@@ -1,10 +1,10 @@
-[gd_scene load_steps=10 format=3 uid="uid://bq0uyd43qvg1k"]
+[gd_scene load_steps=10 format=3 uid="uid://d4fk7tsv0wwt8"]
 
 [ext_resource type="PackedScene" uid="uid://bceky0wsqq1bk" path="res://games/Jump King/jump_king.tscn" id="1_kksvv"]
 [ext_resource type="Script" path="res://scripts/NEATDebugText.gd" id="2_e63a7"]
 [ext_resource type="Script" path="res://scripts/SimSpeedSlider.gd" id="3_qttcm"]
 [ext_resource type="Script" path="res://scripts/SaveButton.gd" id="4_nowmc"]
-[ext_resource type="Script" path="res://Load.gd" id="5_007l2"]
+[ext_resource type="Script" path="res://scripts/LoadButton.gd" id="5_go5ir"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_8w1sf"]
 
@@ -189,7 +189,7 @@ anchor_top = 0.689815
 anchor_right = 0.167535
 anchor_bottom = 0.737654
 text = "load"
-script = ExtResource("5_007l2")
+script = ExtResource("5_go5ir")
 metadata/_edit_use_anchors_ = true
 
 [connection signal="gui_input" from="Control/ColorRect2" to="Control/NEATDebugText" method="_on_color_rect_2_gui_input"]

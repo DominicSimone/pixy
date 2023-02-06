@@ -1,21 +1,38 @@
 class_name NEATConfig extends Resource
-var timeout_constant = 150
-var timeout_bonus_ratio = 0.0
-var max_nodes = 1000000
 
-var population = 50 #300
-var stale_species = 15
-var delta_disjoint = 2.0
-var delta_weights = 0.4
-var delta_threshold = 1.0
+@export var timeout_constant = 150
+@export var timeout_bonus_ratio = 0.0
+@export var max_nodes = 1000000
 
-var perturb_chance = 0.90
-var crossover_chance = 0.75
+@export var population = 300
+@export var stale_species = 15
+@export var delta_disjoint = 2.0
+@export var delta_weights = 0.4
+@export var delta_threshold = 1.0
 
-var inputs: int # remember to include the bias input
-var outputs: int
+@export var perturb_chance = 0.90
+@export var crossover_chance = 0.75
 
-var mutation_rates: MutationRates = MutationRates.new()
+@export var inputs: int # remember to include the bias input
+@export var outputs: int
+
+@export var mutation_rates: MutationRates = MutationRates.new()
+
+# Not used, but required for ResourceLoader
+func _init(tc = 150, tbr = 0.0, mn = 100000, p = 300, ss = 15, dd = 2.0, dw = 0.4, dt = 1.0, pc = 0.9, cc = 0.75, i = 0, o = 0, mr = MutationRates.new()):
+	timeout_constant = tc
+	timeout_bonus_ratio = tbr
+	max_nodes = mn
+	population = p
+	stale_species = ss
+	delta_disjoint = dd
+	delta_weights = dw
+	delta_threshold = dt
+	perturb_chance = pc
+	crossover_chance = cc
+	inputs = i
+	outputs = o
+	mutation_rates = mr
 
 func copy() -> NEATConfig:
 	var copy = NEATConfig.new()

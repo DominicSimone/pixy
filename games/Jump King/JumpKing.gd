@@ -18,7 +18,7 @@ var flat_data: Array[NNInput] = [vision_grid, jump_meter, detail_ground]
 func _ready():
 	Neat.register_game(flat_data, 3)
 
-func _physics_process(delta):
+func _physics_process(_delta):
 	var response: NEATResponse = Neat.frame(get_score(), prepare_nn_input())
 	if response.reset_flag:
 		player.reset()
