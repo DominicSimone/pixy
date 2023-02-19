@@ -12,6 +12,10 @@ func _init(n = {}, i = 0, o = 0, mn = 0):
 	num_outputs = o
 	max_nodes = mn
 
+const e: float = 2.71828183
+static func sigmoid(x):
+	return 2 / (1 + pow(e, -4.9 * x)) - 1
+
 static func generate(genome: Genome, config: NEATConfig):
 	var network = Network.new()
 	network.max_nodes = config.max_nodes
@@ -56,7 +60,7 @@ func evaluate(inputs: Array) -> Array[bool]:
 			sum += incoming.weight * other.value
 		
 		if neuron.incoming.size() > 0:
-			neuron.value = NEAT.sigmoid(sum)
+			neuron.value = sigmoid(sum)
 	
 	var outputs: Array[bool] = []
 	for o in num_outputs:

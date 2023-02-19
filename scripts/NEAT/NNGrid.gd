@@ -1,10 +1,9 @@
 class_name NNGrid extends NNInput
 
-# Can represent channels with bit flags - up to 64 channels with one int
 var channels: int
 var size: Vector2i
 
-var data: PackedInt64Array
+var data: PackedFloat32Array
 
 func _init(_size: Vector2i, _channels: int):
 	size = _size
@@ -12,11 +11,12 @@ func _init(_size: Vector2i, _channels: int):
 	
 	for row in size.x:
 		for col in size.y:
-			data.append(0)
+			for c in channels:
+				data.append(0)
 
-func set_cell(row: int, col: int, _channels: Array):
-	var index = row + col * size.x
-	data[index] = NNGrid.bit_flags(_channels)
+func set_cell(row: int, col: int, channel: int, value: float):
+	var index = row + col * size.x + size.x * size.y * channel
+	data[index] = value
 
 func describe(newline: bool):
 	var string: String = ""
@@ -33,9 +33,3 @@ func flatten():
 
 func get_size():
 	return channels * size.x * size.y
-
-static func bit_flags(_channels: Array):
-	var bitflags: int = 0
-	for channel in _channels:
-		bitflags |= 1 << channel
-	return bitflags

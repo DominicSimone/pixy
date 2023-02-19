@@ -1,0 +1,80 @@
+[gd_resource type="Resource" script_class="Genome" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/NEAT/Gene.gd" id="1_dl8p1"]
+[ext_resource type="Script" path="res://scripts/NEAT/MutationRates.gd" id="2_pbc1e"]
+[ext_resource type="Script" path="res://scripts/NEAT/Genome.gd" id="3_dx1gg"]
+
+[sub_resource type="Resource" id="Resource_wi5o0"]
+script = ExtResource("1_dl8p1")
+into = 168
+out = 175
+weight = 1.0
+enabled = true
+innovation = 440
+
+[sub_resource type="Resource" id="Resource_mjwkx"]
+script = ExtResource("1_dl8p1")
+into = 174
+out = 100000
+weight = 1.3878
+enabled = true
+innovation = 439
+
+[sub_resource type="Resource" id="Resource_vwvw6"]
+script = ExtResource("1_dl8p1")
+into = 168
+out = 100001
+weight = -1.61229
+enabled = false
+innovation = 438
+
+[sub_resource type="Resource" id="Resource_7nf00"]
+script = ExtResource("1_dl8p1")
+into = 175
+out = 100001
+weight = -1.61229
+enabled = false
+innovation = 441
+
+[sub_resource type="Resource" id="Resource_1dqe8"]
+script = ExtResource("1_dl8p1")
+into = 143
+out = 100002
+weight = -0.0214285
+enabled = true
+innovation = 437
+
+[sub_resource type="Resource" id="Resource_kn2u3"]
+script = ExtResource("1_dl8p1")
+into = 114
+out = 100002
+weight = 1.63874
+enabled = true
+innovation = 1184
+
+[sub_resource type="Resource" id="Resource_y004n"]
+script = ExtResource("1_dl8p1")
+into = 122
+out = 100002
+weight = 1.73206
+enabled = true
+innovation = 1185
+
+[sub_resource type="Resource" id="Resource_df841"]
+script = ExtResource("2_pbc1e")
+step_size = 0.1
+node_mutation_chance = 0.5
+link_mutation_chance = 2.0
+bias_mutation_chance = 0.4
+mutate_connections_chance = 0.25
+disable_mutation_chance = 0.4
+enable_mutation_chance = 0.2
+
+[resource]
+script = ExtResource("3_dx1gg")
+genes = Array[ExtResource("1_dl8p1")]([SubResource("Resource_wi5o0"), SubResource("Resource_mjwkx"), SubResource("Resource_vwvw6"), SubResource("Resource_7nf00"), SubResource("Resource_1dqe8"), SubResource("Resource_kn2u3"), SubResource("Resource_y004n")])
+fitness = 37
+adjusted_fitness = 0
+max_neuron = 175
+global_rank = 0
+mutation_rates = SubResource("Resource_df841")

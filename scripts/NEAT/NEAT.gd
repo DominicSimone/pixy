@@ -1,21 +1,24 @@
 class_name NEAT extends Node
 
-const e: float = 2.71828183
-static func sigmoid(x):
-	return 2 / (1 + pow(e, -4.9 * x)) - 1
+enum Mode {
+	POOL,
+	GENOME,
+	PLAYER
+}
 
 var pool: Pool
+var network: Network
 var response: NEATResponse
+var config: NEATConfig
 
 var label: Label
 var label_enabled: bool = false
 var last_frame_score: int = 0
 var idle_counter: int = 0
 
-var start_time: int = 0
-var run_time: int = 0
-var frame_time: int = 0
-var prev_frame_time: int = 0
+var genome_frame_counter: int = 0
+
+var current_mode: Mode = Mode.POOL
 
 var paused: bool = false :
 	set(p):
@@ -31,9 +34,7 @@ var sim_speed: int = 1 :
 		Engine.max_fps = 60 * speed
 		
 
-# TODO load a saved pool / save/load the best genome in a pool
-# Loading only works once..., then the resource will not be updated upon loading again
-# Saving always seems to work correctly
+# TODO connect loading saved genome, ability to swap modes
 # TODO better display of neural net
 
 func connect_label(text_label):
@@ -43,12 +44,28 @@ func connect_label(text_label):
 func update_label():
 	label_enabled = true
 
-func save_pool():
-	print("Saving pool...")
+func save_best_genome():
 	paused = true
-	var error = ResourceSaver.save(pool, "res://pool.tres")
+	if pool.best_genome != null:
+		var genome: Genome = pool.best_genome
+		var path = "res://saved_genomes/genome-%df-%s.tres" % [genome.fitness, genome.genome_hash()]
+		print("Saving best genome to ", path)
+		print(ResourceSaver.save(pool.best_genome, path))
+	else:
+		print("No best genome")
 	paused = false
-	print(error)
+
+func load_genome(file_path):
+	# TODO make sure genome is for this game?
+	var genome = ResourceLoader.load(file_path, "", ResourceLoader.CACHE_MODE_REPLACE)
+	network = Network.generate(genome, config)
+
+func save_pool():
+	paused = true
+	var path = "res://saved_pools/pool-%dg-%d.tres" % [pool.generation, pool.max_fitness]
+	print("Saving pool to ", path)
+	print(ResourceSaver.save(pool, path))
+	paused = false
 	
 func load_pool():
 	print("Loading pool...")
@@ -64,8 +81,9 @@ func prepare_inputs(inputs: Array[NNInput]):
 	flat.append(1)
 	return flat
 
+# TODO add game name in register, include name when saving/loading genomes
 func register_game(inputs: Array[NNInput], num_outputs: int):
-	var config = NEATConfig.new()
+	config = NEATConfig.new()
 	config.inputs = inputs.reduce(func(acc, el): return acc + el.get_size(), 0) + 1
 	config.outputs = num_outputs
 	response = NEATResponse.new(num_outputs)
@@ -76,17 +94,12 @@ func register_game(inputs: Array[NNInput], num_outputs: int):
 func innovation() -> int:
 	return pool.new_innovation()
 
-# Called at the start of every game tick
-func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
-	if paused:
-		return response
-	# Time keeping
-	if start_time == 0:
-		start_time = Time.get_ticks_msec()
-	frame_time = Time.get_ticks_msec() - prev_frame_time
-	prev_frame_time = Time.get_ticks_msec()
-	run_time = Time.get_ticks_msec() - start_time
-	
+func genome_frame(inputs: Array[NNInput]):
+	genome_frame_counter += 1
+	if network != null and genome_frame_counter % 5 == 0:
+		response.outputs = network.evaluate(prepare_inputs(inputs))
+
+func pool_frame(current_score: int, inputs: Array[NNInput]):
 	pool.current_frame += 1
 	
 	if response.reset_flag:
@@ -95,9 +108,7 @@ func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 	# This block directly leads to a 1mb/second memory leak, restricting updates for now
 	if label_enabled:
 		label_enabled = false
-		label.text = "Runtime: %02d:%02d:%02d (%d ms/frame)\n" % \
-			[(run_time / 1000 / 60 / 60), (run_time / 1000 / 60) % 60, (run_time / 1000) % 60, frame_time]
-		label.text += pool.describe_string()
+		label.text = pool.describe_string()
 		label.text += "\nMax fitness/Current score: %d/%d" % [pool.max_fitness, current_score] 
 		label.text += "\nOutput: " + response.describe_string() + "\n"
 		label.text += "Inputs:\n"
@@ -143,5 +154,18 @@ func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 		response.reset_flag = true
 		idle_counter = 0
 		response.reset_outputs()
-		
+
+# Called at the start of every game tick
+func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
+	if paused:
+		return response
+	
+	match current_mode:
+		Mode.POOL:
+			pool_frame(current_score, inputs)
+		Mode.GENOME:
+			genome_frame(inputs)
+		Mode.PLAYER:
+			return NEATResponse.new(response.outputs.size())
+	
 	return response

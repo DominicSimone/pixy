@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=3 uid="uid://d4fk7tsv0wwt8"]
+[gd_scene load_steps=11 format=3 uid="uid://vmdhxy3qf3np"]
 
 [ext_resource type="PackedScene" uid="uid://bceky0wsqq1bk" path="res://games/Jump King/jump_king.tscn" id="1_kksvv"]
 [ext_resource type="Script" path="res://scripts/NEATDebugText.gd" id="2_e63a7"]
 [ext_resource type="Script" path="res://scripts/SimSpeedSlider.gd" id="3_qttcm"]
 [ext_resource type="Script" path="res://scripts/SaveButton.gd" id="4_nowmc"]
-[ext_resource type="Script" path="res://scripts/LoadButton.gd" id="5_go5ir"]
+[ext_resource type="Script" path="res://SaveGenome.gd" id="6_uo6u0"]
+[ext_resource type="Script" path="res://scripts/FileChooser.gd" id="6_ypf2w"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_8w1sf"]
 
@@ -172,28 +173,62 @@ scrollable = false
 script = ExtResource("3_qttcm")
 metadata/_edit_use_anchors_ = true
 
-[node name="Save" type="Button" parent="Control"]
-layout_mode = 0
-anchor_left = 0.0182292
-anchor_top = 0.689815
-anchor_right = 0.0859375
-anchor_bottom = 0.737654
-text = "save"
+[node name="SavePool" type="Button" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0130208
+anchor_top = 0.669753
+anchor_right = 0.198785
+anchor_bottom = 0.717593
+offset_right = -68.0
+offset_bottom = -0.000335693
+text = "Save Current Pool
+"
 script = ExtResource("4_nowmc")
 metadata/_edit_use_anchors_ = true
 
-[node name="Load" type="Button" parent="Control"]
-layout_mode = 0
-anchor_left = 0.0998264
-anchor_top = 0.689815
-anchor_right = 0.167535
-anchor_bottom = 0.737654
-text = "load"
-script = ExtResource("5_go5ir")
+[node name="SaveGenome" type="Button" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0130208
+anchor_top = 0.737654
+anchor_right = 0.144966
+anchor_bottom = 0.78858
+text = "Save Best Genome"
+script = ExtResource("6_uo6u0")
+metadata/_edit_use_anchors_ = true
+
+[node name="LoadPoolButton" type="MenuButton" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.184028
+anchor_top = 0.669753
+anchor_right = 0.256944
+anchor_bottom = 0.717593
+offset_top = 3.05176e-05
+text = "Load Pool"
+flat = false
+script = ExtResource("6_ypf2w")
+metadata/_edit_use_anchors_ = true
+
+[node name="LoadGenome" type="MenuButton" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.184028
+anchor_top = 0.737654
+anchor_right = 0.284722
+anchor_bottom = 0.790123
+text = "Load Genome
+"
+flat = false
+script = ExtResource("6_ypf2w")
+base_path = "res://saved_genomes"
 metadata/_edit_use_anchors_ = true
 
 [connection signal="gui_input" from="Control/ColorRect2" to="Control/NEATDebugText" method="_on_color_rect_2_gui_input"]
 [connection signal="gui_input" from="Control/NEATDebugText" to="Control/NEATDebugText" method="_on_gui_input"]
 [connection signal="value_changed" from="Control/SimSpeedSlider" to="Control/SimSpeedSlider" method="_on_value_changed"]
-[connection signal="pressed" from="Control/Save" to="Control/Save" method="_on_pressed"]
-[connection signal="pressed" from="Control/Load" to="Control/Load" method="_on_pressed"]
+[connection signal="pressed" from="Control/SavePool" to="Control/SavePool" method="_on_pressed"]
+[connection signal="pressed" from="Control/SaveGenome" to="Control/SaveGenome" method="_on_pressed"]
+[connection signal="about_to_popup" from="Control/LoadPoolButton" to="Control/LoadPoolButton" method="_on_about_to_popup"]
+[connection signal="about_to_popup" from="Control/LoadGenome" to="Control/LoadGenome" method="_on_about_to_popup"]

@@ -16,7 +16,10 @@ func _init(g: Array[Gene] = [], f = 0, adjf = 0, mn = 0, gr = 0, mr = null):
 	global_rank = gr
 	mutation_rates = mr
 
-func genome_string():
+func genome_hash():
+	return String.num_int64(genome_string().hash(), 16, true)
+
+func genome_string() -> String:
 	return genes.reduce(func(acc, g):
 		if g.enabled:
 			return acc + "%d-%d " % [g.out, g.into]

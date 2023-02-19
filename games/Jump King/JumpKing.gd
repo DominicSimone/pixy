@@ -22,13 +22,9 @@ func _physics_process(_delta):
 	var response: NEATResponse = Neat.frame(get_score(), prepare_nn_input())
 	if response.reset_flag:
 		player.reset()
-	frame_inputs.left = response.outputs[0] 
-	frame_inputs.jump = response.outputs[1] 
-	frame_inputs.right = response.outputs[2] 
-	
-#	frame_inputs.left = Input.is_action_pressed("left")
-#	frame_inputs.jump = Input.is_action_pressed("jump")
-#	frame_inputs.right = Input.is_action_pressed("right")
+	frame_inputs.left = response.outputs[0] or Input.is_action_pressed("left")
+	frame_inputs.jump = response.outputs[1] or Input.is_action_pressed("jump")
+	frame_inputs.right = response.outputs[2] or Input.is_action_pressed("right")
 
 func get_score() -> int:
 	return (-1 * player.position.y) + 36
@@ -45,16 +41,16 @@ func prepare_nn_input() -> Array[NNInput]:
 			var pos = Vector2(pos_x, pos_y)
 			var tile_coords = tilemap.local_to_map(tilemap.to_local(player.global_position - pos))
 			if tilemap.get_cell_tile_data(0, tile_coords) != null:
-				vision_grid.set_cell(row, col, [0])
+				vision_grid.set_cell(row, col, 0, 1)
 			else:
-				vision_grid.set_cell(row, col, [])
+				vision_grid.set_cell(row, col, 0, 0)
 	
 	# Jump meter inputs
 	for row in jump_meter.size.x:
 		if player.current_jump_time / player.max_jump_time >= (row+1) / (jump_meter.size.x - 1.0):
-			jump_meter.set_cell(row, 0, [0])
+			jump_meter.set_cell(row, 0, 0, 1)
 		else:
-			jump_meter.set_cell(row, 0, [])
+			jump_meter.set_cell(row, 0, 0, 0)
 	
 	# Detail ground, sub pixels below character
 	var center = detail_ground.size.x / 2.0
@@ -64,8 +60,8 @@ func prepare_nn_input() -> Array[NNInput]:
 		var global_pos = Vector2(player.global_position.x - x_offset, player.global_position.y + 4)
 		var tile_coords = tilemap.local_to_map(tilemap.to_local(global_pos))
 		if tilemap.get_cell_tile_data(0, tile_coords) != null:
-			detail_ground.set_cell(x, 0, [0])
+			detail_ground.set_cell(x, 0, 0, 1)
 		else:
-			detail_ground.set_cell(x, 0, [])
+			detail_ground.set_cell(x, 0, 0, 0)
 	
 	return flat_data
