@@ -1,10 +1,10 @@
-[gd_scene load_steps=11 format=3 uid="uid://vmdhxy3qf3np"]
+[gd_scene load_steps=11 format=3 uid="uid://cw06noouiuatn"]
 
-[ext_resource type="PackedScene" uid="uid://bceky0wsqq1bk" path="res://games/Jump King/jump_king.tscn" id="1_kksvv"]
+[ext_resource type="PackedScene" uid="uid://bcndi3y3uxjdm" path="res://games/Jump King/jump_king.tscn" id="1_kksvv"]
 [ext_resource type="Script" path="res://scripts/NEATDebugText.gd" id="2_e63a7"]
 [ext_resource type="Script" path="res://scripts/SimSpeedSlider.gd" id="3_qttcm"]
 [ext_resource type="Script" path="res://scripts/SaveButton.gd" id="4_nowmc"]
-[ext_resource type="Script" path="res://SaveGenome.gd" id="6_uo6u0"]
+[ext_resource type="Script" path="res://scripts/SaveGenome.gd" id="5_kkbxl"]
 [ext_resource type="Script" path="res://scripts/FileChooser.gd" id="6_ypf2w"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_8w1sf"]
@@ -195,7 +195,7 @@ anchor_top = 0.737654
 anchor_right = 0.144966
 anchor_bottom = 0.78858
 text = "Save Best Genome"
-script = ExtResource("6_uo6u0")
+script = ExtResource("5_kkbxl")
 metadata/_edit_use_anchors_ = true
 
 [node name="LoadPoolButton" type="MenuButton" parent="Control"]
@@ -209,6 +209,7 @@ offset_top = 3.05176e-05
 text = "Load Pool"
 flat = false
 script = ExtResource("6_ypf2w")
+NEAT_method_call = "load_pool"
 metadata/_edit_use_anchors_ = true
 
 [node name="LoadGenome" type="MenuButton" parent="Control"]

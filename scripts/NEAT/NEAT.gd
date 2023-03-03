@@ -66,11 +66,11 @@ func save_pool():
 	print("Saving pool to ", path)
 	print(ResourceSaver.save(pool, path))
 	paused = false
-	
-func load_pool():
-	print("Loading pool...")
+
+func load_pool(file_path):
+	print("Loading pool from ", file_path)
 	paused = true
-	pool = ResourceLoader.load("res://pool.tres", "", ResourceLoader.CACHE_MODE_REPLACE)
+	pool = ResourceLoader.load(file_path, "Pool", ResourceLoader.CACHE_MODE_REPLACE)
 	paused = false
 	print(pool)
 

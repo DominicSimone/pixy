@@ -36,7 +36,6 @@ func _physics_process(delta):
 		velocity.y += gravity * delta
 	
 	else:
-	
 		if NN.frame_inputs["jump"]:
 			sprite.frame = 1
 			current_jump_time += delta

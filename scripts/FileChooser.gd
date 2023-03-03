@@ -3,6 +3,7 @@ class_name FileChooser extends MenuButton
 signal path_chosen(file_path: String)
 
 @export var base_path = "res://saved_pools"
+@export var NEAT_method_call: String
 
 var file_to_path: Dictionary = {}
 
@@ -11,8 +12,9 @@ func _ready():
 
 func index_pressed(index):
 	var path = file_to_path.get(get_popup().get_item_text(index))
-	var full_path = "%s/%s" % [base_path, path]
-	path_chosen.emit(full_path)
+	path_chosen.emit(path)
+	if NEAT_method_call != "":
+		Neat.call_deferred(NEAT_method_call, path)
 
 func _on_about_to_popup():
 	populate_paths()

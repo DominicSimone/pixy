@@ -11,10 +11,10 @@ class_name Pool extends Resource
 @export var current_high_score: int = 0
 @export var timeout: int = 0
 @export var max_fitness: int = 0
-var best_genome: Genome
+@export var best_genome: Genome
 
 # Not used, but required for ResourceLoader
-func _init(_config = null, i = 0, sp: Array[Species] = [], g = 0, cs = 0, cg = 0, cn = null, cf = 0, chs = 0, t = 0, mf = 0):
+func _init(_config = null, i = 0, sp: Array[Species] = [], g = 0, cs = 0, cg = 0, cn = null, cf = 0, chs = 0, t = 0, mf = 0, gen = null):
 	innovations = i
 	species = sp
 	generation = g
@@ -26,7 +26,7 @@ func _init(_config = null, i = 0, sp: Array[Species] = [], g = 0, cs = 0, cg = 0
 	timeout = t
 	max_fitness = mf
 	config = _config
-	
+	best_genome = gen
 
 func describe_string():
 	return "Pool (%d species)\nTimeout: %d\nCurrent generation/species/genome: %d.%d.%d" % \
@@ -153,6 +153,7 @@ func rank_globally():
 		all_genomes[rank].global_rank = rank
 	
 	best_genome = all_genomes[0]
+	print(best_genome)
 
 func new_innovation() -> int:
 	innovations += 1

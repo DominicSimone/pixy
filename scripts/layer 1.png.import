@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ci7a8x48updeq"
-path="res://.godot/imported/pixy atlas.png-797dd062b183179a028eb7b71b99f417.ctex"
+uid="uid://214ki5qeryct"
+path="res://.godot/imported/layer 1.png-625f3fc142cf739ad86fbaced2012619.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://pixy atlas.png"
-dest_files=["res://.godot/imported/pixy atlas.png-797dd062b183179a028eb7b71b99f417.ctex"]
+source_file="res://scripts/layer 1.png"
+dest_files=["res://.godot/imported/layer 1.png-625f3fc142cf739ad86fbaced2012619.ctex"]
 
 [params]
 

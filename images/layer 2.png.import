@@ -2,23 +2,23 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://xn60pns5c2bd"
-path="res://.godot/imported/pixy mock up.png-1c2de27e817d9491f83f7311b477558e.ctex"
+uid="uid://cy4id2p342sjw"
+path="res://.godot/imported/layer 2.png-80c5a332b24586b5f89ed691fc9ea1b3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://pixy mock up.png"
-dest_files=["res://.godot/imported/pixy mock up.png-1c2de27e817d9491f83f7311b477558e.ctex"]
+source_file="res://images/layer 2.png"
+dest_files=["res://.godot/imported/layer 2.png-80c5a332b24586b5f89ed691fc9ea1b3.ctex"]
 
 [params]
 
 compress/mode=0
+compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/bptc_ldr=0
 compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=false
