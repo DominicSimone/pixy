@@ -142,7 +142,7 @@ func total_avg_fitness():
 	return species.reduce(func(acc, s): return acc + s.avg_fitness, 0.0)
 
 func rank_globally():
-	var all_genomes = []
+	var all_genomes: Array = []
 	for spec in species:
 		for genome in spec.genomes:
 			all_genomes.append(genome)
@@ -152,8 +152,7 @@ func rank_globally():
 	for rank in all_genomes.size():
 		all_genomes[rank].global_rank = rank
 	
-	best_genome = all_genomes[0]
-	print(best_genome)
+	best_genome = all_genomes.back()
 
 func new_innovation() -> int:
 	innovations += 1

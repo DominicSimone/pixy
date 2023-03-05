@@ -1,8 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://cw06noouiuatn"]
+[gd_scene load_steps=12 format=3 uid="uid://cw06noouiuatn"]
 
 [ext_resource type="PackedScene" uid="uid://bcndi3y3uxjdm" path="res://games/Jump King/jump_king.tscn" id="1_kksvv"]
 [ext_resource type="Script" path="res://scripts/NEATDebugText.gd" id="2_e63a7"]
 [ext_resource type="Script" path="res://scripts/SimSpeedSlider.gd" id="3_qttcm"]
+[ext_resource type="Script" path="res://ModeSelect.gd" id="4_0xpfy"]
 [ext_resource type="Script" path="res://scripts/SaveButton.gd" id="4_nowmc"]
 [ext_resource type="Script" path="res://scripts/SaveGenome.gd" id="5_kkbxl"]
 [ext_resource type="Script" path="res://scripts/FileChooser.gd" id="6_ypf2w"]
@@ -132,7 +133,7 @@ render_target_update_mode = 4
 
 [node name="Jump King" parent="Control/ColorRect/GameView/SubViewport" instance=ExtResource("1_kksvv")]
 
-[node name="ColorRect2" type="ColorRect" parent="Control"]
+[node name="DebugBG" type="ColorRect" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.342882
@@ -156,16 +157,25 @@ autowrap_mode = 1
 script = ExtResource("2_e63a7")
 metadata/_edit_use_anchors_ = true
 
-[node name="SimSpeedSlider" type="HSlider" parent="Control"]
+[node name="ControlsBG" type="ColorRect" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.0130208
-anchor_top = 0.601852
-anchor_right = 0.333333
-anchor_bottom = 0.669753
+anchor_top = 0.62037
+anchor_right = 0.295139
+anchor_bottom = 0.868827
+color = Color(0.258824, 0.258824, 0.258824, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="SimSpeedSlider" type="HSlider" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0190972
+anchor_top = 0.62037
+anchor_right = 0.286458
+anchor_bottom = 0.688272
 offset_bottom = -3.05176e-05
 pivot_offset = Vector2(103, 281)
-min_value = 1.0
 max_value = 10.0
 value = 1.0
 rounded = true
@@ -173,15 +183,32 @@ scrollable = false
 script = ExtResource("3_qttcm")
 metadata/_edit_use_anchors_ = true
 
+[node name="ModeSelect" type="OptionButton" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0190972
+anchor_top = 0.682099
+anchor_right = 0.171007
+anchor_bottom = 0.731481
+offset_bottom = -3.05176e-05
+item_count = 3
+selected = 0
+popup/item_0/text = "PLAYER"
+popup/item_0/id = 0
+popup/item_1/text = "GENOME"
+popup/item_1/id = 1
+popup/item_2/text = "POOL"
+popup/item_2/id = 2
+script = ExtResource("4_0xpfy")
+metadata/_edit_use_anchors_ = true
+
 [node name="SavePool" type="Button" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0130208
-anchor_top = 0.669753
-anchor_right = 0.198785
-anchor_bottom = 0.717593
-offset_right = -68.0
-offset_bottom = -0.000335693
+anchor_left = 0.0190972
+anchor_top = 0.74537
+anchor_right = 0.171007
+anchor_bottom = 0.79321
 text = "Save Current Pool
 "
 script = ExtResource("4_nowmc")
@@ -190,10 +217,10 @@ metadata/_edit_use_anchors_ = true
 [node name="SaveGenome" type="Button" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0130208
-anchor_top = 0.737654
-anchor_right = 0.144966
-anchor_bottom = 0.78858
+anchor_left = 0.0190972
+anchor_top = 0.805556
+anchor_right = 0.171007
+anchor_bottom = 0.856481
 text = "Save Best Genome"
 script = ExtResource("5_kkbxl")
 metadata/_edit_use_anchors_ = true
@@ -201,11 +228,11 @@ metadata/_edit_use_anchors_ = true
 [node name="LoadPoolButton" type="MenuButton" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.184028
-anchor_top = 0.669753
-anchor_right = 0.256944
-anchor_bottom = 0.717593
-offset_top = 3.05176e-05
+anchor_left = 0.185764
+anchor_top = 0.74537
+anchor_right = 0.284722
+anchor_bottom = 0.79321
+offset_top = -3.05176e-05
 text = "Load Pool"
 flat = false
 script = ExtResource("6_ypf2w")
@@ -215,20 +242,22 @@ metadata/_edit_use_anchors_ = true
 [node name="LoadGenome" type="MenuButton" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.184028
-anchor_top = 0.737654
-anchor_right = 0.284722
-anchor_bottom = 0.790123
+anchor_left = 0.185764
+anchor_top = 0.805556
+anchor_right = 0.286458
+anchor_bottom = 0.856481
 text = "Load Genome
 "
 flat = false
 script = ExtResource("6_ypf2w")
 base_path = "res://saved_genomes"
+NEAT_method_call = "load_genome"
 metadata/_edit_use_anchors_ = true
 
-[connection signal="gui_input" from="Control/ColorRect2" to="Control/NEATDebugText" method="_on_color_rect_2_gui_input"]
+[connection signal="gui_input" from="Control/DebugBG" to="Control/NEATDebugText" method="_on_color_rect_2_gui_input"]
 [connection signal="gui_input" from="Control/NEATDebugText" to="Control/NEATDebugText" method="_on_gui_input"]
 [connection signal="value_changed" from="Control/SimSpeedSlider" to="Control/SimSpeedSlider" method="_on_value_changed"]
+[connection signal="item_selected" from="Control/ModeSelect" to="Control/ModeSelect" method="_on_item_selected"]
 [connection signal="pressed" from="Control/SavePool" to="Control/SavePool" method="_on_pressed"]
 [connection signal="pressed" from="Control/SaveGenome" to="Control/SaveGenome" method="_on_pressed"]
 [connection signal="about_to_popup" from="Control/LoadPoolButton" to="Control/LoadPoolButton" method="_on_about_to_popup"]

@@ -1,9 +1,9 @@
 class_name NEAT extends Node
 
 enum Mode {
-	POOL,
+	PLAYER,
 	GENOME,
-	PLAYER
+	POOL
 }
 
 var pool: Pool
@@ -18,7 +18,7 @@ var idle_counter: int = 0
 
 var genome_frame_counter: int = 0
 
-var current_mode: Mode = Mode.POOL
+var current_mode: Mode = Mode.PLAYER
 
 var paused: bool = false :
 	set(p):
@@ -29,12 +29,11 @@ var sim_speed: int = 1 :
 	set(speed):
 		sim_speed = speed
 		# Capped by max_fps (and by extension vsync)
-		Engine.physics_ticks_per_second = 60*speed
+		Engine.physics_ticks_per_second = max(60, 60*speed)
 		Engine.time_scale = speed
-		Engine.max_fps = 60 * speed
+		Engine.max_fps = max(60, 60 * speed)
 		
 
-# TODO connect loading saved genome, ability to swap modes
 # TODO better display of neural net
 
 func connect_label(text_label):
@@ -44,25 +43,28 @@ func connect_label(text_label):
 func update_label():
 	label_enabled = true
 
+# TODO add game name/id to save (some variety of metadata that describes
+# compatability with what the current game is sending NEAT
 func save_best_genome():
 	paused = true
-	if pool.best_genome != null:
-		var genome: Genome = pool.best_genome
-		var path = "res://saved_genomes/genome-%df-%s.tres" % [genome.fitness, genome.genome_hash()]
-		print("Saving best genome to ", path)
-		print(ResourceSaver.save(pool.best_genome, path))
-	else:
-		print("No best genome")
+	pool.rank_globally()
+	var genome: Genome = pool.best_genome
+	var path = "res://saved_genomes/genome-%df-%s.tres" % [genome.fitness, genome.genome_hash()]
+	print("Saving best genome to ", path)
+	print(ResourceSaver.save(pool.best_genome, path))
 	paused = false
 
 func load_genome(file_path):
-	# TODO make sure genome is for this game?
+	print("Loading genome from ", file_path)
+	paused = true
 	var genome = ResourceLoader.load(file_path, "", ResourceLoader.CACHE_MODE_REPLACE)
 	network = Network.generate(genome, config)
+	paused = false
+	print(genome)
 
 func save_pool():
 	paused = true
-	var path = "res://saved_pools/pool-%dg-%d.tres" % [pool.generation, pool.max_fitness]
+	var path = "res://saved_pools/pool-%dg-%dmf.tres" % [pool.generation, pool.max_fitness]
 	print("Saving pool to ", path)
 	print(ResourceSaver.save(pool, path))
 	paused = false
@@ -91,8 +93,21 @@ func register_game(inputs: Array[NNInput], num_outputs: int):
 	pool = Pool.new(config)
 	pool.startup()
 
-func innovation() -> int:
-	return pool.new_innovation()
+# Called at the start of every game tick
+func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
+	if paused or sim_speed == 0:
+		return response
+	
+	match current_mode:
+		Mode.POOL:
+			pool_frame(current_score, inputs)
+		Mode.GENOME:
+			genome_frame(inputs)
+		Mode.PLAYER:
+			return NEATResponse.new(response.outputs.size())
+	
+	return response
+
 
 func genome_frame(inputs: Array[NNInput]):
 	genome_frame_counter += 1
@@ -155,17 +170,5 @@ func pool_frame(current_score: int, inputs: Array[NNInput]):
 		idle_counter = 0
 		response.reset_outputs()
 
-# Called at the start of every game tick
-func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
-	if paused:
-		return response
-	
-	match current_mode:
-		Mode.POOL:
-			pool_frame(current_score, inputs)
-		Mode.GENOME:
-			genome_frame(inputs)
-		Mode.PLAYER:
-			return NEATResponse.new(response.outputs.size())
-	
-	return response
+func innovation() -> int:
+	return pool.new_innovation()
