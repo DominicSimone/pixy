@@ -1,9 +1,9 @@
-[gd_scene load_steps=12 format=3 uid="uid://cw06noouiuatn"]
+[gd_scene load_steps=12 format=3 uid="uid://bkej2kshwpbiq"]
 
 [ext_resource type="PackedScene" uid="uid://bcndi3y3uxjdm" path="res://games/Jump King/jump_king.tscn" id="1_kksvv"]
 [ext_resource type="Script" path="res://scripts/NEATDebugText.gd" id="2_e63a7"]
 [ext_resource type="Script" path="res://scripts/SimSpeedSlider.gd" id="3_qttcm"]
-[ext_resource type="Script" path="res://ModeSelect.gd" id="4_0xpfy"]
+[ext_resource type="Script" path="res://scripts/ModeSelect.gd" id="4_2d8gp"]
 [ext_resource type="Script" path="res://scripts/SaveButton.gd" id="4_nowmc"]
 [ext_resource type="Script" path="res://scripts/SaveGenome.gd" id="5_kkbxl"]
 [ext_resource type="Script" path="res://scripts/FileChooser.gd" id="6_ypf2w"]
@@ -105,33 +105,33 @@ light_energy = 0.1
 [node name="ColorRect" type="ColorRect" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0130208
-anchor_top = 0.0216049
-anchor_right = 0.335069
-anchor_bottom = 0.594136
+anchor_left = 0.0138889
+anchor_top = 0.0246914
+anchor_right = 0.333333
+anchor_bottom = 0.592593
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.552941, 0.396078, 1, 1)
+color = Color(0.462745, 0.301961, 1, 1)
 metadata/_edit_use_anchors_ = true
 
-[node name="GameView" type="SubViewportContainer" parent="Control/ColorRect"]
+[node name="GameView" type="SubViewportContainer" parent="Control"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0294118
-anchor_top = 0.0294118
-anchor_right = 0.970588
-anchor_bottom = 0.970588
+anchor_left = 0.0208333
+anchor_top = 0.037037
+anchor_right = 0.326389
+anchor_bottom = 0.580247
 grow_horizontal = 2
 grow_vertical = 2
 stretch = true
 metadata/_edit_use_anchors_ = true
 
-[node name="SubViewport" type="SubViewport" parent="Control/ColorRect/GameView"]
+[node name="SubViewport" type="SubViewport" parent="Control/GameView"]
 handle_input_locally = false
-size = Vector2i(349, 349)
+size = Vector2i(352, 352)
 render_target_update_mode = 4
 
-[node name="Jump King" parent="Control/ColorRect/GameView/SubViewport" instance=ExtResource("1_kksvv")]
+[node name="Jump King" parent="Control/GameView/SubViewport" instance=ExtResource("1_kksvv")]
 
 [node name="DebugBG" type="ColorRect" parent="Control"]
 layout_mode = 1
@@ -180,6 +180,7 @@ max_value = 10.0
 value = 1.0
 rounded = true
 scrollable = false
+tick_count = 11
 script = ExtResource("3_qttcm")
 metadata/_edit_use_anchors_ = true
 
@@ -199,7 +200,7 @@ popup/item_1/text = "GENOME"
 popup/item_1/id = 1
 popup/item_2/text = "POOL"
 popup/item_2/id = 2
-script = ExtResource("4_0xpfy")
+script = ExtResource("4_2d8gp")
 metadata/_edit_use_anchors_ = true
 
 [node name="SavePool" type="Button" parent="Control"]

@@ -4,6 +4,7 @@ class_name Network extends Resource
 @export var num_inputs: int = 0
 @export var num_outputs: int = 0
 @export var max_nodes: int = 0
+var max_depth: int = -1
 
 # Not used, but required for ResourceLoader
 func _init(n = {}, i = 0, o = 0, mn = 0):
@@ -40,6 +41,21 @@ static func generate(genome: Genome, config: NEATConfig):
 			if not network.neurons.has(gene.into):
 				network.neurons[gene.into] = Neuron.new()
 	
+	# Start from the outputs, work backwords with Neurons' `incoming` property to set depth
+	var queue: Array[Neuron] = []
+	for o in network.num_outputs:
+		network.neurons[o+config.max_nodes].depth = 0
+		queue.append(network.neurons[o + config.max_nodes])
+	while not queue.is_empty():
+		var current: Neuron = queue.pop_back()
+		for gene in current.incoming:
+			var neuron = network.neurons[gene.out]
+			if neuron.depth == 0:
+				neuron.depth = current.depth + 1
+				if neuron.depth > network.max_depth:
+					network.max_depth = neuron.depth
+				queue.append(neuron)
+	
 	return network
 	
 # real inputs, flattened down to an array
@@ -60,7 +76,7 @@ func evaluate(inputs: Array) -> Array[bool]:
 			sum += incoming.weight * other.value
 		
 		if neuron.incoming.size() > 0:
-			neuron.value = sigmoid(sum)
+			neuron.value = Network.sigmoid(sum)
 	
 	var outputs: Array[bool] = []
 	for o in num_outputs:

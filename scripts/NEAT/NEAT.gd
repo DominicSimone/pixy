@@ -49,7 +49,7 @@ func save_best_genome():
 	paused = true
 	pool.rank_globally()
 	var genome: Genome = pool.best_genome
-	var path = "res://saved_genomes/genome-%df-%s.tres" % [genome.fitness, genome.genome_hash()]
+	var path = "res://saved_genomes/genome-%df-%s.res" % [genome.fitness, genome.genome_hash()]
 	print("Saving best genome to ", path)
 	print(ResourceSaver.save(pool.best_genome, path))
 	paused = false
@@ -64,7 +64,7 @@ func load_genome(file_path):
 
 func save_pool():
 	paused = true
-	var path = "res://saved_pools/pool-%dg-%dmf.tres" % [pool.generation, pool.max_fitness]
+	var path = "res://saved_pools/pool-%dg-%dmf.res" % [pool.generation, pool.max_fitness]
 	print("Saving pool to ", path)
 	print(ResourceSaver.save(pool, path))
 	paused = false
@@ -72,7 +72,7 @@ func save_pool():
 func load_pool(file_path):
 	print("Loading pool from ", file_path)
 	paused = true
-	pool = ResourceLoader.load(file_path, "Pool", ResourceLoader.CACHE_MODE_REPLACE)
+	pool = ResourceLoader.load(file_path, "", ResourceLoader.CACHE_MODE_REPLACE)
 	paused = false
 	print(pool)
 
