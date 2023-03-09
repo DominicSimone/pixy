@@ -49,15 +49,15 @@ static func generate(genome: Genome, config: NEATConfig):
 	while not queue.is_empty():
 		var current: Neuron = queue.pop_back()
 		for gene in current.incoming:
-			var neuron = network.neurons[gene.out]
-			if neuron.depth == 0:
+			var neuron = network.neurons[gene.into]
+			if neuron.depth == -1:
 				neuron.depth = current.depth + 1
 				if neuron.depth > network.max_depth:
 					network.max_depth = neuron.depth
 				queue.append(neuron)
 	
 	return network
-	
+
 # real inputs, flattened down to an array
 func evaluate(inputs: Array) -> Array[bool]: 
 	if inputs.size() != num_inputs:

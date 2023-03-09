@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://mdqts1kdnkcl"]
+
+[sub_resource type="Gradient" id="Gradient_5uj5h"]
+colors = PackedColorArray(0, 0, 0, 1, 0.492188, 0.492188, 0.492188, 1)
+
+[node name="Line2D" type="Line2D"]
+width = 1.0
+default_color = Color(0, 0, 0, 1)
+gradient = SubResource("Gradient_5uj5h")

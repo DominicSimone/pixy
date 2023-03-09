@@ -87,8 +87,6 @@ func new_generation():
 	
 	generation += 1
 	
-	# TODO write file? Return something?
-	
 func add_to_species(child: Genome):
 	for spec in species:
 		if Genome.same_species(child, spec.genomes[0], config):

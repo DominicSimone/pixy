@@ -4,11 +4,11 @@
 
 [node name="NetworkVisual" type="Node2D"]
 script = ExtResource("1_ip58l")
-
-[node name="Lines" type="Node2D" parent="."]
-
-[node name="Line2D" type="Line2D" parent="Lines"]
+width = 400
+height = 200
+revisualize = true
+file_name = "res://saved_genomes/genome-230f-DB05FC16.res"
 
 [node name="Nodes" type="Node2D" parent="."]
 
-[node name="Sprite2D" type="Sprite2D" parent="Nodes"]
+[node name="Lines" type="Node2D" parent="."]

@@ -17,10 +17,10 @@ func _init(g: Array[Gene] = [], f = 0, adjf = 0, mn = 0, gr = 0, mr = null):
 	mutation_rates = mr
 
 func genome_hash():
-	return String.num_int64(genome_string().hash(), 16, true)
+	return String.num_int64(Genome.genome_string(self).hash(), 16, true)
 
-func genome_string() -> String:
-	return genes.reduce(func(acc, g):
+static func genome_string(genome: Genome) -> String:
+	return genome.genes.reduce(func(acc, g):
 		if g.enabled:
 			return acc + "%d-%d " % [g.out, g.into]
 		else:
@@ -30,7 +30,7 @@ func genome_string() -> String:
 func copy() -> Genome:
 	var copy = Genome.new()
 	copy.genes = genes.duplicate(true)
-	#copy.fitness = fitness
+	copy.fitness = fitness
 	#copy.adjusted_fitness = adjusted_fitness
 	copy.max_neuron = max_neuron
 	#copy.global_rank = global_rank
@@ -116,15 +116,20 @@ func node_mutate():
 	gene2.enabled = true
 	genes.append(gene2)
 
-# Try to connect two nodes (cannot connect two input nodes together)
+# Try to connect two nodes (cannot connect two input or output nodes together)
 func link_mutate(force_bias: bool, config: NEATConfig):
 	var neuron1 = random_neuron(false, config)
 	var neuron2 = random_neuron(true, config)
 	var num_inputs = config.inputs
+	var num_outputs = config.outputs
+	var max_nodes = config.max_nodes
 	
 	var new_link = Gene.new()
 	if neuron1 <= num_inputs and neuron2 <= num_inputs:
 		# Both input nodes
+		return
+	if neuron1 >= num_outputs + max_nodes and neuron2 >= num_outputs + max_nodes:
+		# Both output nodes
 		return
 	if neuron2 <= num_inputs:
 		var temp = neuron1

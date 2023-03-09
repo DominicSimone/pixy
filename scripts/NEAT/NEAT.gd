@@ -130,7 +130,7 @@ func pool_frame(current_score: int, inputs: Array[NNInput]):
 		label.text += inputs[0].describe(true)
 		label.text += inputs[1].describe(true)
 		label.text += inputs[2].describe(true)
-		label.text += "Genome: " + pool.species[pool.current_species].genomes[pool.current_genome].genome_string()
+		label.text += "Genome: " + Genome.genome_string(pool.species[pool.current_species].genomes[pool.current_genome])
 	
 	# run the network and getting outputs, quick restart if idle
 	if pool.current_frame % 5 == 0:

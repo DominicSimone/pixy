@@ -4,7 +4,7 @@ class_name NEATConfig extends Resource
 @export var timeout_bonus_ratio = 0.0
 @export var max_nodes = 1000000
 
-@export var population = 300
+@export var population = 50 # TODO change back to 300?
 @export var stale_species = 15
 @export var delta_disjoint = 2.0
 @export var delta_weights = 0.4
