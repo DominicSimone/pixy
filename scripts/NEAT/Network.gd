@@ -55,7 +55,23 @@ static func generate(genome: Genome, config: NEATConfig):
 				if neuron.depth > network.max_depth:
 					network.max_depth = neuron.depth
 				queue.append(neuron)
-	
+	# Second pass for those not connected to an output node 
+	for i in network.num_inputs:
+		network.neurons[i].depth = network.max_depth
+	for key in network.neurons.keys():
+		var neuron = network.neurons[key]
+		if neuron.depth == -1:
+			queue.append(neuron)
+	while not queue.is_empty():
+		var current: Neuron = queue.pop_back()
+		var max_depth = -1
+		for gene in current.incoming:
+			var neuron: Neuron = network.neurons[gene.into]
+			if neuron.depth > max_depth:
+				max_depth = neuron.depth
+		if max_depth > -1:
+			current.depth = max_depth - 1
+			
 	return network
 
 # real inputs, flattened down to an array

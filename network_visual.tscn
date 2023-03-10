@@ -6,8 +6,7 @@
 script = ExtResource("1_ip58l")
 width = 400
 height = 200
-revisualize = true
-file_name = "res://saved_genomes/genome-230f-DB05FC16.res"
+genome = true
 
 [node name="Nodes" type="Node2D" parent="."]
 
