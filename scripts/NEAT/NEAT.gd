@@ -34,8 +34,6 @@ var sim_speed: int = 1 :
 		Engine.max_fps = max(60, 60 * speed)
 		
 
-# TODO better display of neural net
-
 func connect_label(text_label):
 	label = text_label
 	label_enabled = true

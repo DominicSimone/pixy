@@ -1,9 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://mdqts1kdnkcl"]
+[gd_scene load_steps=3 format=3 uid="uid://mdqts1kdnkcl"]
 
-[sub_resource type="Gradient" id="Gradient_5uj5h"]
-colors = PackedColorArray(0, 0, 0, 1, 0.492188, 0.492188, 0.492188, 1)
+[ext_resource type="Shader" path="res://line.gdshader" id="1_kucup"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lqgho"]
+resource_local_to_scene = true
+shader = ExtResource("1_kucup")
+shader_parameter/activity = 1.0
+shader_parameter/position_offset = 0.0
 
 [node name="Line2D" type="Line2D"]
+material = SubResource("ShaderMaterial_lqgho")
+points = PackedVector2Array(11, 17, 99.0039, 43.639, 196, 73)
 width = 1.0
-default_color = Color(0, 0, 0, 1)
-gradient = SubResource("Gradient_5uj5h")
+default_color = Color(0, 0, 0, 0.329412)

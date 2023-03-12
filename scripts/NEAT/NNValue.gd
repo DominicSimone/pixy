@@ -8,5 +8,5 @@ func _init(val):
 func flatten() -> Array:
 	return [value]
 
-func get_input_count():
+func get_size():
 	return 1
