@@ -12,8 +12,9 @@ var frame_inputs: Dictionary = {
 var vision_grid = NNGrid.new(Vector2i(16, 10), 1)
 var jump_meter = NNGrid.new(Vector2i(8, 1), 1)
 var detail_ground = NNGrid.new(Vector2i(5, 1), 1)
+var bias = NNValue.new(1)
 
-var flat_data: Array[NNInput] = [vision_grid, jump_meter, detail_ground]
+var flat_data: Array[NNInput] = [vision_grid, jump_meter, detail_ground, bias]
 
 func _ready():
 	Neat.register_game(flat_data, 3)

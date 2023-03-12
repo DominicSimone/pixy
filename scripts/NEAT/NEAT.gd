@@ -7,12 +7,11 @@ enum Mode {
 }
 
 var pool: Pool
-var network: Network
+var genome_network: Network
 var response: NEATResponse
 var config: NEATConfig
+var network_visual: NetworkVisual
 
-var label: Label
-var label_enabled: bool = false
 var last_frame_score: int = 0
 var idle_counter: int = 0
 
@@ -32,14 +31,6 @@ var sim_speed: int = 1 :
 		Engine.physics_ticks_per_second = max(60, 60*speed)
 		Engine.time_scale = speed
 		Engine.max_fps = max(60, 60 * speed)
-		
-
-func connect_label(text_label):
-	label = text_label
-	label_enabled = true
-
-func update_label():
-	label_enabled = true
 
 # TODO add game name/id to save (some variety of metadata that describes
 # compatability with what the current game is sending NEAT
@@ -56,7 +47,7 @@ func load_genome(file_path):
 	print("Loading genome from ", file_path)
 	paused = true
 	var genome = ResourceLoader.load(file_path, "", ResourceLoader.CACHE_MODE_REPLACE)
-	network = Network.generate(genome, config)
+	genome_network = Network.generate(genome, config)
 	paused = false
 	print(genome)
 
@@ -78,13 +69,12 @@ func prepare_inputs(inputs: Array[NNInput]):
 	var flat = []
 	for input in inputs:
 		flat.append_array(input.flatten())
-	flat.append(1)
 	return flat
 
 # TODO add game name in register, include name when saving/loading genomes
 func register_game(inputs: Array[NNInput], num_outputs: int):
 	config = NEATConfig.new()
-	config.inputs = inputs.reduce(func(acc, el): return acc + el.get_size(), 0) + 1
+	config.inputs = inputs.reduce(func(acc, el): return acc + el.get_size(), 0)
 	config.outputs = num_outputs
 	response = NEATResponse.new(num_outputs)
 	print("Registered game with ", config.inputs, " inputs and ", config.outputs, " outputs.")
@@ -95,7 +85,7 @@ func register_game(inputs: Array[NNInput], num_outputs: int):
 func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 	if paused or sim_speed == 0:
 		return response
-	
+
 	match current_mode:
 		Mode.POOL:
 			pool_frame(current_score, inputs)
@@ -109,30 +99,22 @@ func frame(current_score: int, inputs: Array[NNInput]) -> NEATResponse:
 
 func genome_frame(inputs: Array[NNInput]):
 	genome_frame_counter += 1
-	if network != null and genome_frame_counter % 5 == 0:
-		response.outputs = network.evaluate(prepare_inputs(inputs))
+	if genome_network != null and genome_frame_counter % 5 == 0:
+		network_visual.visualize(genome_network, inputs)
+		response.outputs = genome_network.evaluate(prepare_inputs(inputs))
+		network_visual.update()
 
 func pool_frame(current_score: int, inputs: Array[NNInput]):
 	pool.current_frame += 1
 	
 	if response.reset_flag:
 		response.reset_flag = false
-	
-	# This block directly leads to a 1mb/second memory leak, restricting updates for now
-	if label_enabled:
-		label_enabled = false
-		label.text = pool.describe_string()
-		label.text += "\nMax fitness/Current score: %d/%d" % [pool.max_fitness, current_score] 
-		label.text += "\nOutput: " + response.describe_string() + "\n"
-		label.text += "Inputs:\n"
-		label.text += inputs[0].describe(true)
-		label.text += inputs[1].describe(true)
-		label.text += inputs[2].describe(true)
-		label.text += "Genome: " + Genome.genome_string(pool.species[pool.current_species].genomes[pool.current_genome])
-	
+
 	# run the network and getting outputs, quick restart if idle
 	if pool.current_frame % 5 == 0:
+		network_visual.visualize(pool.current_network, inputs)
 		response.outputs = pool.current_network.evaluate(prepare_inputs(inputs))
+		network_visual.update()
 		# Quick restart if the NN isn't doing anything for two evaluations in a row, and score is unchanging
 		if not response.outputs.any(func(a): return a):
 			if current_score == last_frame_score:

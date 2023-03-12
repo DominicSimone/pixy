@@ -23,7 +23,6 @@ Neat="*res://scripts/NEAT/NEAT.gd"
 
 [display]
 
-window/size/mode=2
 window/size/transparent=true
 window/per_pixel_transparency/allowed=true
 window/vsync/vsync_mode=0

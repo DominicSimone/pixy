@@ -1,52 +1,12 @@
-[gd_scene load_steps=12 format=3 uid="uid://bkej2kshwpbiq"]
+[gd_scene load_steps=8 format=3 uid="uid://bkej2kshwpbiq"]
 
 [ext_resource type="PackedScene" uid="uid://bcndi3y3uxjdm" path="res://games/Jump King/jump_king.tscn" id="1_kksvv"]
-[ext_resource type="Script" path="res://scripts/NEATDebugText.gd" id="2_e63a7"]
 [ext_resource type="Script" path="res://scripts/SimSpeedSlider.gd" id="3_qttcm"]
 [ext_resource type="Script" path="res://scripts/ModeSelect.gd" id="4_2d8gp"]
 [ext_resource type="Script" path="res://scripts/SaveButton.gd" id="4_nowmc"]
 [ext_resource type="Script" path="res://scripts/SaveGenome.gd" id="5_kkbxl"]
 [ext_resource type="Script" path="res://scripts/FileChooser.gd" id="6_ypf2w"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_8w1sf"]
-
-[sub_resource type="Animation" id="Animation_p0tey"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:rotation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(0, 1.5708, 0)]
-}
-
-[sub_resource type="Animation" id="Animation_23nds"]
-resource_name = "spin"
-length = 3.0
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:rotation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector3(0, 0, 0), Vector3(1.5708, 0, 1.5708)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_nx82r"]
-_data = {
-"RESET": SubResource("Animation_p0tey"),
-"spin": SubResource("Animation_23nds")
-}
+[ext_resource type="PackedScene" uid="uid://b58wcphwiu6x3" path="res://network_visual.tscn" id="8_ody7e"]
 
 [node name="Node3D" type="Node3D"]
 
@@ -59,48 +19,6 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 6
 size_flags_vertical = 6
-
-[node name="Pixy Frame" type="SubViewportContainer" parent="Control"]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-stretch = true
-stretch_shrink = 8
-
-[node name="SubViewport" type="SubViewport" parent="Control/Pixy Frame"]
-transparent_bg = true
-handle_input_locally = false
-size = Vector2i(144, 81)
-size_2d_override_stretch = true
-render_target_update_mode = 0
-
-[node name="Camera3D" type="Camera3D" parent="Control/Pixy Frame/SubViewport"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.77042)
-projection = 1
-current = true
-size = 4.16003
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Control/Pixy Frame"]
-transform = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, 0, 0, 0)
-mesh = SubResource("BoxMesh_8w1sf")
-skeleton = NodePath("../../..")
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Control/Pixy Frame/MeshInstance3D"]
-autoplay = "spin"
-libraries = {
-"": SubResource("AnimationLibrary_nx82r")
-}
-
-[node name="AboveLight" type="DirectionalLight3D" parent="Control/Pixy Frame"]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 2.92367, 0)
-
-[node name="GroundLight" type="DirectionalLight3D" parent="Control/Pixy Frame"]
-transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, -5.49983, 0)
-light_energy = 0.1
 
 [node name="ColorRect" type="ColorRect" parent="Control"]
 layout_mode = 1
@@ -132,30 +50,6 @@ size = Vector2i(352, 352)
 render_target_update_mode = 4
 
 [node name="Jump King" parent="Control/GameView/SubViewport" instance=ExtResource("1_kksvv")]
-
-[node name="DebugBG" type="ColorRect" parent="Control"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.342882
-anchor_top = 0.0262346
-anchor_right = 0.965278
-anchor_bottom = 0.651235
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.054902, 0.054902, 0.054902, 1)
-metadata/_edit_use_anchors_ = true
-
-[node name="NEATDebugText" type="Label" parent="Control"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.349826
-anchor_top = 0.0432099
-anchor_right = 0.955729
-anchor_bottom = 0.640432
-text = "NEAT"
-autowrap_mode = 1
-script = ExtResource("2_e63a7")
-metadata/_edit_use_anchors_ = true
 
 [node name="ControlsBG" type="ColorRect" parent="Control"]
 layout_mode = 1
@@ -255,8 +149,12 @@ base_path = "res://saved_genomes"
 NEAT_method_call = "load_genome"
 metadata/_edit_use_anchors_ = true
 
-[connection signal="gui_input" from="Control/DebugBG" to="Control/NEATDebugText" method="_on_color_rect_2_gui_input"]
-[connection signal="gui_input" from="Control/NEATDebugText" to="Control/NEATDebugText" method="_on_gui_input"]
+[node name="NetworkVisual" parent="Control" instance=ExtResource("8_ody7e")]
+texture_filter = 1
+position = Vector2(416, 24)
+scale = Vector2(2, 2)
+width = 200
+
 [connection signal="value_changed" from="Control/SimSpeedSlider" to="Control/SimSpeedSlider" method="_on_value_changed"]
 [connection signal="item_selected" from="Control/ModeSelect" to="Control/ModeSelect" method="_on_item_selected"]
 [connection signal="pressed" from="Control/SavePool" to="Control/SavePool" method="_on_pressed"]

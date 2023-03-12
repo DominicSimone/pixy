@@ -48,41 +48,35 @@ func mutate(config: NEATConfig):
 			mutation_rates.set(property.name, rate * 1.05263)
 	
 	if randf() < mutation_rates.mutate_connections_chance:
-#		print("Point mutating...")
 		point_mutate(config)
 	
 	var p = mutation_rates.link_mutation_chance
 	while p > 0:
 		if randf() < p:
-#			print("Link mutating (false)...")
 			link_mutate(false, config)
 		p -= 1
 	
 	p = mutation_rates.bias_mutation_chance
 	while p > 0:
 		if randf() < p:
-#			print("Link mutating (true)...")
 			link_mutate(true, config)
 		p -= 1
 	
 	p = mutation_rates.node_mutation_chance
 	while p > 0:
 		if randf() < p:
-#			print("Node mutating...")
 			node_mutate()
 		p -= 1
 	
 	p = mutation_rates.enable_mutation_chance
 	while p > 0:
 		if randf() < p:
-#			print("En/Disable mutating (true)...")
 			enable_disable_mutate(true)
 		p -= 1
 	
 	p = mutation_rates.disable_mutation_chance
 	while p > 0:
 		if randf() < p:
-#			print("En/Disable mutating (false)...")
 			enable_disable_mutate(false)
 		p -= 1
 

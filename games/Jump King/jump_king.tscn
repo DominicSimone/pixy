@@ -2127,6 +2127,7 @@ region_rect = Rect2(0, 0, 16, 16)
 
 [node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
 texture_filter = 1
+position = Vector2(0, -34)
 zoom = Vector2(2, 2)
 
 [node name="TileMap" type="TileMap" parent="."]

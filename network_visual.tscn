@@ -4,11 +4,15 @@
 
 [node name="NetworkVisual" type="Node2D"]
 script = ExtResource("1_ip58l")
-width = 400
-height = 200
+width = 300
+height = 100
 modulate_color = Color(0.227451, 0.227451, 0.227451, 1)
-file_name = "res://saved_genomes/genome-176f-631E4807.res"
 
-[node name="Nodes" type="Node2D" parent="."]
+[node name="Node2D" type="Node2D" parent="."]
+position = Vector2(9, 9)
 
-[node name="Lines" type="Node2D" parent="."]
+[node name="Nodes" type="Node2D" parent="Node2D"]
+position = Vector2(-9, -9)
+
+[node name="Lines" type="Node2D" parent="Node2D"]
+position = Vector2(-9, -9)
