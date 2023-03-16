@@ -84,6 +84,7 @@ func visualize(network: Network, inputs: Array[NNInput]):
 			geneToNode[i] = node
 			node.position.y = 15 * (i - current_network.max_nodes) + 9
 			node.position.x = width
+			node.scale = Vector2.ONE
 			node.modulate = modulate_color if neuron.value <= 0 else Color(1, 1, 1)
 			node.visible = true
 		else:
@@ -91,7 +92,7 @@ func visualize(network: Network, inputs: Array[NNInput]):
 			# depth is distance from output nodes
 			var node: Sprite2D = acq_node()
 			geneToNode[i] = node
-			node.scale = Vector2(0.75, 0.75)
+			node.scale = Vector2(0.6, 0.6)
 			node.modulate = lerp(modulate_color, Color(1, 1, 1), neuron.value)
 			if neuron.depth in depth_nodes.keys():
 				depth_nodes[neuron.depth].append(node)
@@ -99,14 +100,14 @@ func visualize(network: Network, inputs: Array[NNInput]):
 				depth_nodes[neuron.depth] = [node]
 
 	for depth in depth_nodes:
-		var col_size: int = depth_nodes[depth].size()
-		var current: int = (height / 2) - (col_size / 2) * 15
+		var col_size: float = depth_nodes[depth].size() + 1
+		var current: float = 1
 		for node in depth_nodes[depth]:
 			var x_ratio = 1 - abs(depth as float / network.max_depth as float)
 			node.position.x = max(110, x_ratio * (width * 0.75) + (width * 0.25))
-			node.position.y = current
+			node.position.y = (current / col_size) * height
 			node.visible = true
-			current += 15
+			current += 1
 
 	# Connect nodes according to incoming property
 	for i in network.neurons.keys():
