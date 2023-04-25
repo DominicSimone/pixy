@@ -104,7 +104,7 @@ func visualize(network: Network, inputs: Array[NNInput]):
 		var current: float = 1
 		for node in depth_nodes[depth]:
 			var x_ratio = 1 - abs(depth as float / network.max_depth as float)
-			node.position.x = max(110, x_ratio * (width * 0.75) + (width * 0.25))
+			node.position.x = max(110, x_ratio * (width * 0.6) + (width * 0.25))
 			node.position.y = (current / col_size) * height
 			node.visible = true
 			current += 1
