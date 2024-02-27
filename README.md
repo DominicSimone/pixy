@@ -6,4 +6,4 @@ Algorithm implemented is described in [Evolving Neural Networks through Augmenti
 
 ![Screenshot](https://github.com/DominicSimone/pixy/blob/main/Screenshot%202023-04-24%20201920.png?raw=true)
 
-![Demo video](https://github.com/DominicSimone/pixy/blob/main/pixy_demo.mp4)
+Brief demo video available here: https://www.youtube.com/watch?v=hCW7HIFe7FA
